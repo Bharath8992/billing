@@ -1,0 +1,96 @@
+{% extends "invoice/base/base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-xl-12 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <label class="m-0 font-weight-bold text-primary">Create Customer</label>
+            </div>
+
+            <div class="card-body">
+                <form method="post" action="">
+                    {% csrf_token %}
+
+                    <!-- Show global form errors -->
+                    {% if customer.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Please fix the errors below:</strong>
+                            <ul>
+                                {% for field, errors in customer.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|title }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Customer Name</label>
+                        {{ customer.customer_name }}
+                        {% if customer.customer_name.errors %}
+                            <div class="text-danger small">
+                                {{ customer.customer_name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Gender</label>
+                        {{ customer.customer_gender }}
+                        {% if customer.customer_gender.errors %}
+                            <div class="text-danger small">
+                                {{ customer.customer_gender.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Date of Birth</label>
+                        {{ customer.customer_dob }}
+                        {% if customer.customer_dob.errors %}
+                            <div class="text-danger small">
+                                {{ customer.customer_dob.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Customer Number</label>
+                        {{ customer.customer_number }}
+                        {% if customer.customer_number.errors %}
+                            <div class="text-danger small">
+                                {{ customer.customer_number.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Customer Email</label>
+                        {{ customer.customer_email }}
+                        {% if customer.customer_email.errors %}
+                            <div class="text-danger small">
+                                {{ customer.customer_email.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Status</label>
+                        {{ customer.customer_status }}
+                        {% if customer.customer_status.errors %}
+                            <div class="text-danger small">
+                                {{ customer.customer_status.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <input class="btn btn-info" type="submit" value="Create Customer">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

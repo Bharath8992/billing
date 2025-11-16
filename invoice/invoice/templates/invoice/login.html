@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Invoice Management</title>
+
+    <!-- Fonts & Icons -->
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Glass card */
+        .card-login {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.2);
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .card-login:hover {
+            transform: translateY(-5px);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-header i {
+            font-size: 3rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header h4 {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .btn-login {
+            background: linear-gradient(90deg, #007bff, #6610f2);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: background 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(90deg, #6610f2, #007bff);
+        }
+
+        .footer-text {
+            color: #f8f9fa;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="col-md-4 fade-in">
+        <div class="card card-login">
+            <div class="login-header">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <h4>Admin Login</h4>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-danger text-center">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <div class="form-group mb-3">
+                    <input type="text" name="username" class="form-control" placeholder="Username" required>
+                </div>
+                <div class="form-group mb-4">
+                    <input type="password" name="password" class="form-control" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-login w-100 py-2">
+                    <i class="fas fa-sign-in-alt me-2"></i> Login
+                </button>
+            </form>
+        </div>
+
+        <p class="footer-text">Invoice Management System © 2025</p>
+    </div>
+
+    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/sb-admin-2.min.js' %}"></script>
+</body>
+</html>

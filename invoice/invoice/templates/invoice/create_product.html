@@ -1,0 +1,74 @@
+{% extends "invoice/base/base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-12 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <label class="m-0 font-weight-bold text-primary">
+                    {% if editing %}Edit{% else %}Create{% endif %} Product
+                </label>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label" for="services_name">Services Name</label>
+                        {{ form.services_name }}
+                        {% if form.services_name.errors %}
+                            <div class="text-danger">
+                                {{ form.services_name.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="services_price"> Services Price</label>
+                        {{ form.services_price }}
+                        {% if form.services_price.errors %}
+                            <div class="text-danger">
+                                {{ form.services_price.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="services_duration"> Services Duration</label>
+                        {{ form.services_duration }}
+                        {% if form.services_duration.errors %}
+                            <div class="text-danger">
+                                {{ form.services_duration.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="services_image">Service Image</label><br>
+                        {{ form.services_image }}
+                        {% if form.services_image.errors %}
+                            <div class="text-danger">
+                                {{ form.services_image.errors }}
+                            </div>
+                        {% endif %}
+
+                        {% if form.instance.services_image %}
+                            <img src="{{ form.instance.services_image.url }}" alt="{{ form.instance.services_name }}" style="max-width: 200px; height: auto; margin-top:10px;">
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <input class="btn btn-info" type="submit" value="{% if editing %}Update{% else %}Create{% endif %} Product">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
