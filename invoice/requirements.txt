@@ -12,6 +12,6 @@ sqlparse==0.4.1
 tomli==1.2.1
 typing-extensions==3.10.0.2
 six==1.16.0
-pandas==2.1.0
-numpy==1.24.3
+pandas==2.2.2
+numpy==1.26.4
 openpyxl==3.0.10
