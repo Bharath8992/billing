@@ -21,3 +21,4 @@ tomli==1.2.1
 typing-extensions==3.10.0.2
 six==1.16.0
 reportlab==3.6.12
+qrcode[pil]
