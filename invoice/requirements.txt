@@ -23,3 +23,4 @@ six==1.16.0
 reportlab==3.6.12
 qrcode[pil]
 num2words
+whitenoise
