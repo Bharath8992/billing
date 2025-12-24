@@ -302,13 +302,29 @@ def create_customer(request):
 
     return render(request, "invoice/create_customer.html", context)
 
+
+from django.db.models import Q
+from django.shortcuts import render
 @admin_required
 def view_customer(request):
+    # dashboard counts
     total_product = Product.objects.count()
     total_customer = Customer.objects.count()
     total_invoice = Invoice.objects.count()
 
+    # search value
+    search = request.GET.get('search', '')
+
+    # base queryset
     customer = Customer.objects.all()
+
+    # apply search filter
+    if search:
+        customer = customer.filter(
+            Q(customer_name__icontains=search) |
+            Q(customer_number__icontains=search) |
+            Q(customer_email__icontains=search)
+        )
 
     context = {
         "total_product": total_product,
@@ -461,7 +477,7 @@ def create_invoice(request):
         width, height = A4
         
         from reportlab.lib.utils import ImageReader
-        bg_image = ImageReader("https://i.pinimg.com/1200x/c2/aa/16/c2aa16f86d0bce94af0250fbd8aa6476.jpg")
+        bg_image = ImageReader("https://i.pinimg.com/1200x/5a/f3/12/5af312bd3ebb3a67d92bc1e266065d30.jpg")
         c.drawImage(bg_image, 0, 0, width=width, height=height, mask='auto')
 
 
@@ -553,10 +569,10 @@ def create_invoice(request):
         c.setFont("Helvetica-Bold", 10)
         c.drawString(30, 120, "Bank Details:")
         c.setFont("Helvetica", 9)
-        c.drawString(30, 108, "Bank: ICICI Bank")
-        c.drawString(30, 96, "Account Number: 123456789")
-        c.drawString(30, 84, "IFSC: ICIC0001234")
-        c.drawString(30, 72, "Branch: Vellore")
+        c.drawString(30, 108, "Bank:")
+        c.drawString(30, 96, "Account Number: ")
+        c.drawString(30, 84, "IFSC: ")
+        c.drawString(30, 72, "Branch: ")
         c.rect(25, 60, 270, 70, stroke=True)
 
         # === Terms ===
@@ -575,8 +591,7 @@ def create_invoice(request):
         c.rect(315, 60, width - 340, 70, stroke=True)
 
         # === Signature ===
-        c.setFont("Helvetica", 9)
-        c.drawRightString(width - 40, 80, "For CURA THERAPY CENTER")
+
 
         c.line(width - 140, 50, width - 40, 50)
         c.drawRightString(width - 40, 40, "Authorized Signature")
@@ -586,6 +601,8 @@ def create_invoice(request):
         buffer.seek(0)
 
         # Return file as response
+        # return redirect('view_invoice')
+
         return FileResponse(buffer, as_attachment=True, filename=f"Invoice_{invoice.id}.pdf")
 
     # ------------------------------
@@ -844,22 +861,29 @@ def get_customer_details(request):
 @admin_required
 def view_invoice(request):
     total_product = Product.objects.count()
-    # total_customer = Customer.objects.count()
     total_invoice = Invoice.objects.count()
     total_income = getTotalIncome()
 
+    search = request.GET.get('search', '')
+
     invoice = Invoice.objects.all()
+
+    if search:
+        invoice = invoice.filter(
+            Q(customer__icontains=search) |
+            Q(contact__icontains=search) |
+            Q(email__icontains=search) |
+            Q(id__icontains=search)
+        )
 
     context = {
         "total_product": total_product,
-        # "total_customer": total_customer,
         "total_invoice": total_invoice,
         "total_income": total_income,
         "invoice": invoice,
     }
 
     return render(request, "invoice/view_invoice.html", context)
-
 
 @admin_required
 def view_invoice_detail(request, pk):

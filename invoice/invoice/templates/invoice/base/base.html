@@ -11,7 +11,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Invoice Management</title>
+    <title> Cura Invoice Management</title>
 
     <!-- Custom fonts for this template-->
     <link href="{% static '/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
@@ -73,7 +73,7 @@
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="{% url 'create_product' %}">Add</a>
-                        <a class="collapse-item" href="{% url 'upload_product_excel' %}">Upload Excel</a>
+                        {% comment %} <a class="collapse-item" href="{% url 'upload_product_excel' %}">Upload Excel</a> {% endcomment %}
 
                         <a class="collapse-item" href="{% url 'view_product' %}">View</a>
                     </div>
@@ -107,7 +107,7 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="{% url 'create_invoice' %}">Add</a>
                         <a class="collapse-item" href="{% url 'view_invoice' %}">View</a>
-                        <a class="collapse-item" href="{% url 'download_all_invoice' %}">Download</a>
+                        {% comment %} <a class="collapse-item" href="{% url 'download_all_invoice' %}">Download</a> {% endcomment %}
                         <a class="collapse-item" href="{% url 'delete_all_invoice' %}">Delete</a>
 
                     </div>
