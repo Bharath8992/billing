@@ -25,7 +25,7 @@ def login_view(request):
 
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             request.session["user"] = username  # store session
-            return redirect("home")
+            return redirect("create_customer")
         else:
             error = "Invalid credentials"
             return render(request, "invoice/login.html", {"error": error})
