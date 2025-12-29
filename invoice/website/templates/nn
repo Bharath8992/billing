@@ -1,0 +1,1352 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cura Therapy Centre - Premium Wellness & Foot Reflexology in Vellore</title>
+<meta name="description" content="Experience premium foot reflexology, massage therapies, spa treatments, and wellness services at Cura Therapy Centre in Vellore. Relax, rejuvenate and restore your wellbeing.">
+<meta name="keywords" content="foot reflexology Vellore, massage therapy, spa treatments, wellness centre, Thai massage, facial treatments, pedicure manicure Vellore">
+
+<!-- Bootstrap CSS -->
+<link href="https://fonts.googleapis.com/css2?family=Nova+Cut&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Font Awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<!-- Swiper JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ========== ENHANCED LEAF-THEMED LOADER ========== */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0a2f1e 0%, #1a4d2e 50%, #2d7d46 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: 'Poppins', sans-serif;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+#loader.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* 🌿 Animated Leaf Container */
+.leaf-container {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin-bottom: 30px;
+}
+
+/* Main rotating leaf */
+.rotating-leaf {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  transform: rotate(45deg);
+  animation: leaf-float 3s ease-in-out infinite;
+  box-shadow: 
+    0 0 40px rgba(74, 222, 128, 0.4),
+    inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+/* Leaf veins */
+.leaf-veins {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  animation: veins-pulse 2s ease-in-out infinite;
+}
+
+.leaf-veins::before,
+.leaf-veins::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.leaf-veins::before {
+  width: 4px;
+  height: 80px;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.leaf-veins::after {
+  width: 60px;
+  height: 3px;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%) rotate(30deg);
+}
+
+/* Leaf details */
+.leaf-detail {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background: #15803d;
+  border-radius: 50%;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 15px rgba(21, 128, 61, 0.5);
+  animation: detail-glow 2s ease-in-out infinite alternate;
+}
+
+/* Floating dots */
+.floating-dots {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.floating-dots span {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: float-up 3s linear infinite;
+}
+
+.floating-dots span:nth-child(1) {
+  top: -10px;
+  left: 40px;
+  animation-delay: 0s;
+}
+
+.floating-dots span:nth-child(2) {
+  top: -10px;
+  right: 40px;
+  animation-delay: 0.5s;
+}
+
+.floating-dots span:nth-child(3) {
+  bottom: -10px;
+  left: 30px;
+  animation-delay: 1s;
+}
+
+.floating-dots span:nth-child(4) {
+  bottom: -10px;
+  right: 30px;
+  animation-delay: 1.5s;
+}
+
+/* Animations */
+@keyframes leaf-float {
+  0%, 100% {
+    transform: rotate(45deg) translateY(0);
+  }
+  50% {
+    transform: rotate(45deg) translateY(-15px);
+  }
+}
+
+@keyframes veins-pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes detail-glow {
+  0% {
+    box-shadow: 0 0 10px rgba(21, 128, 61, 0.5);
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    box-shadow: 0 0 25px rgba(74, 222, 128, 0.8);
+    transform: translateX(-50%) scale(1.1);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* Loader Text */
+.loader-text {
+  text-align: center;
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 2.2rem;
+  margin-top: 20px;
+  line-height: 1.4;
+  opacity: 0;
+  animation: fadeIn 1s ease forwards 0.8s;
+  font-family: 'Playfair Display', serif;
+}
+
+.loader-text span {
+  display: block;
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+}
+
+/* Progress bar */
+.loader-bar {
+  width: 200px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin-top: 25px;
+  overflow: hidden;
+  position: relative;
+}
+
+.loader-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.3) 50%, 
+    transparent 100%);
+  animation: shimmer 2s infinite;
+}
+
+.loader-progress {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e, #16a34a);
+  border-radius: 10px;
+  animation: progress 2s ease-in-out forwards;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+}
+
+@keyframes progress {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* ========== ENHANCED BODY STYLES ========== */
+:root {
+  --primary-green: #2e7d32;
+  --secondary-green: #4caf50;
+  --accent-gold: #ffb300;
+  --dark-green: #1b5e20;
+  --light-green: #c8e6c9;
+  --hero-overlay: rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #333;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  background: #f8f9fa;
+}
+
+/* ========== ENHANCED NAVBAR ========== */
+.custom-navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: linear-gradient(135deg, var(--dark-green), var(--primary-green));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.custom-navbar.scrolled {
+  background: linear-gradient(135deg, var(--dark-green), var(--primary-green));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  padding: 10px 40px;
+}
+
+.custom-navbar .logo {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+}
+
+.custom-navbar .logo img {
+  height: 45px;
+  width: 45px;
+  border-radius: 50%;
+  margin-right: 12px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.custom-navbar .nav-links {
+  list-style: none;
+  display: flex;
+  gap: 35px;
+  margin: 0;
+  padding: 0;
+}
+
+.custom-navbar .nav-links li a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.custom-navbar .nav-links li a:hover {
+  color: var(--accent-gold);
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.menu-toggle {
+  display: none;
+  font-size: 24px;
+  color: #fff;
+  cursor: pointer;
+  background: none;
+  border: none;
+  z-index: 1001;
+  transition: all 0.3s ease;
+}
+
+.close-menu {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  color: #fff;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ========== ENHANCED HERO SECTION ========== */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  color: white;
+  padding-top: 120px;
+  padding-bottom: 4rem;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)),
+              url('{% static "webiste/images/hero-bg.png" %}') center/cover;
+  transform-origin: center;
+  will-change: transform;
+  z-index: 0;
+  animation: bg-zoom 20s ease-in-out infinite alternate;
+}
+
+.hero .container {
+  position: relative;
+  z-index: 2;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero h3 {
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.hero-img {
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: perspective(1000px) rotateY(-5deg);
+  transition: transform 0.5s ease;
+}
+
+.hero-img:hover {
+  transform: perspective(1000px) rotateY(0deg);
+}
+
+@keyframes bg-zoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+/* ========== ENHANCED SERVICES SECTION ========== */
+.services {
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+  padding: 100px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.services::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to bottom, var(--primary-green), transparent);
+  opacity: 0.1;
+}
+
+.services .bg-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 12rem;
+  font-weight: 900;
+  color: rgba(139, 237, 144, 0.1);
+  text-align: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.services .section-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--dark-green);
+  text-align: center;
+  margin-bottom: 60px;
+  position: relative;
+  z-index: 1;
+}
+
+.service-card {
+  background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s ease;
+  text-align: center;
+  margin-top: 180px;
+  padding: 70px 25px 30px;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  min-height: 380px;
+  z-index: 1;
+}
+
+.service-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--accent-gold), #ffd54f);
+  z-index: 2;
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.service-card img {
+  width: 85%;
+  height: 200px;
+  border-radius: 10px;
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  object-fit: cover;
+  border: 5px solid white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.service-card:hover img {
+  transform: translateX(-50%) scale(1.05);
+}
+
+.service-title {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  letter-spacing: 1px;
+}
+
+.service-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ========== ENHANCED ABOUT SECTION ========== */
+.about-section {
+  padding: 100px 0;
+  background: linear-gradient(to right, #ffffff 50%, #f8f9fa 50%);
+  position: relative;
+}
+
+.about-card {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9)),
+              url("https://i.pinimg.com/736x/48/88/2e/48882ebcc4bf0c10e56db981f0790401.jpg") center/cover;
+  color: #fff;
+  padding: 3rem;
+  border-radius: 15px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+.about-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #fff;
+}
+
+.btn-custom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-green {
+  background: white;
+  color: var(--primary-green);
+  margin-right: 1rem;
+}
+
+.btn-green:hover {
+  background: var(--light-green);
+  transform: translateY(-2px);
+}
+
+/* ========== ENHANCED PRICING SECTION ========== */
+.pricing-section {
+  padding: 100px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  position: relative;
+}
+
+.pricing-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
+  background: linear-gradient(to bottom, rgba(46, 125, 50, 0.1), transparent);
+}
+
+.package-card {
+  background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+  border-radius: 20px;
+  padding: 40px 25px;
+  color: #fff;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  height: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.package-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.package-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.time-badge {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  color: var(--primary-green);
+  font-size: 1.5rem;
+  font-weight: 800;
+  border-radius: 50%;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+/* ========== ENHANCED TESTIMONIALS SECTION ========== */
+.testimonial-section {
+  padding: 100px 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  position: relative;
+}
+
+.testimonial-section h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 8rem;
+  font-weight: 900;
+  color: rgba(46, 125, 50, 0.1);
+  text-align: center;
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  z-index: 0;
+}
+
+.testimonial-card {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s ease;
+  height: 100%;
+  border-left: 5px solid var(--primary-green);
+}
+
+.testimonial-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* ========== ENHANCED FOOTER ========== */
+footer {
+  background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.95)),
+              url('https://i.pinimg.com/1200x/0f/b6/12/0fb61230057c3538166ee19510761c45.jpg') center/cover;
+  color: #fff;
+  padding: 80px 0 30px;
+  position: relative;
+}
+
+footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--accent-gold), var(--primary-green));
+}
+
+/* ========== SCROLL TO TOP BUTTON ========== */
+#scrollTopBtn {
+  display: none;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 999;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+#scrollTopBtn:hover {
+  transform: translateY(-5px) scale(1.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* ========== SIDE BUTTONS ========== */
+.side-buttons {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 998;
+}
+
+.side-btn {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  background: linear-gradient(135deg, var(--accent-gold), #ff9800);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 25px 15px;
+  border-radius: 10px 0 0 10px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  letter-spacing: 1px;
+}
+
+.side-btn:hover {
+  background: linear-gradient(135deg, #ff9800, var(--accent-gold));
+  transform: translateX(-10px);
+  color: white;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 1200px) {
+  .services .bg-title {
+    font-size: 10rem;
+  }
+  
+  .hero h1 {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .custom-navbar {
+    padding: 15px 20px;
+  }
+  
+  .custom-navbar .nav-links {
+    display: none;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--dark-green), var(--primary-green));
+    padding: 100px 20px 40px;
+    z-index: 1000;
+    overflow-y: auto;
+  }
+  
+  .custom-navbar .nav-links.active {
+    display: flex;
+  }
+  
+  .menu-toggle {
+    display: block;
+  }
+  
+  .close-menu {
+    display: block;
+  }
+  
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+  
+  .services .bg-title {
+    font-size: 8rem;
+  }
+  
+  .services .section-heading {
+    font-size: 2.5rem;
+  }
+  
+  .service-card {
+    margin-top: 150px;
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding-top: 100px;
+    padding-bottom: 2rem;
+  }
+  
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .hero h3 {
+    font-size: 1rem;
+  }
+  
+  .services .bg-title {
+    font-size: 6rem;
+  }
+  
+  .services .section-heading {
+    font-size: 2rem;
+  }
+  
+  .testimonial-section h1 {
+    font-size: 6rem;
+  }
+  
+  .side-buttons {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .custom-navbar .logo {
+    font-size: 20px;
+  }
+  
+  .loader-text {
+    font-size: 1.8rem;
+  }
+  
+  .loader-text span {
+    font-size: 1.8rem;
+  }
+  
+  .services .bg-title {
+    font-size: 4rem;
+  }
+  
+  .about-card {
+    padding: 2rem;
+  }
+  
+  .about-card h2 {
+    font-size: 1.8rem;
+  }
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+/* ========== UTILITY CLASSES ========== */
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary-green), var(--accent-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gradient {
+  background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+}
+
+.shadow-soft {
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.rounded-xl {
+  border-radius: 15px;
+}
+
+/* ========== SCROLL ANIMATIONS ========== */
+[data-aos] {
+  transition-duration: 1s;
+}
+
+[data-aos="fade-up"] {
+  transform: translateY(30px);
+  opacity: 0;
+}
+
+[data-aos="fade-up"].aos-animate {
+  transform: translateY(0);
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+
+<!-- Enhanced Leaf Loader -->
+<div id="loader">
+  <div class="leaf-container">
+    <div class="rotating-leaf"></div>
+    <div class="leaf-veins"></div>
+    <div class="leaf-detail"></div>
+    <div class="floating-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
+  <h1 class="loader-text">Welcome to<br><span>Cura Therapy Centre</span></h1>
+  <div class="loader-bar">
+    <div class="loader-progress"></div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<nav class="custom-navbar">
+  <a href="#home" class="logo">
+    <img src="{% static 'webiste/images/logo.png' %}" alt="Cura Therapy Centre Logo">
+    <span>Cura Therapy Centre</span>
+  </a>
+  
+  <ul class="nav-links">
+    <button class="close-menu"><i class="fas fa-times"></i></button>
+    <li><a href="#home"><i class="fas fa-home"></i> Home</a></li>
+    <li><a href="#services"><i class="fas fa-spa"></i> Services</a></li>
+    <li><a href="#menu"><i class="fas fa-clipboard-list"></i> Menu</a></li>
+    <li><a href="#about"><i class="fas fa-info-circle"></i> About</a></li>
+    <li><a href="#pricing"><i class="fas fa-tags"></i> Packages</a></li>
+    <li><a href="#testimonials"><i class="fas fa-star"></i> Testimonials</a></li>
+    <li><a href="#contact"><i class="fas fa-phone-alt"></i> Contact</a></li>
+  </ul>
+
+  <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+</nav>
+
+<!-- Side Buttons -->
+<div class="side-buttons">
+  <a href="#menu" class="side-btn">View Menu</a>
+  <a href="#contact" class="side-btn">Book Now</a>
+</div>
+
+<!-- Hero Section -->
+<section id="home" class="hero">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-5 mb-lg-0" data-aos="fade-right">
+        <h1 class="text-gradient">Vellore's Premium Wellness & Reflexology Centre</h1>
+        <h3 class="mb-4">Experience ultimate relaxation with our professional foot reflexology, therapeutic massages, skin care treatments, and holistic wellness therapies. Affordable luxury starting from ₹499.</h3>
+        <div class="d-flex gap-3">
+          <a href="#contact" class="btn btn-custom btn-green">
+            <i class="fas fa-calendar-alt me-2"></i>Book Appointment
+          </a>
+          <a href="#services" class="btn btn-custom btn-green">
+            <i class="fas fa-spa me-2"></i>View Services
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6" data-aos="fade-left">
+        <img src="{% static 'webiste/images/hero2.jpg' %}" 
+             alt="Cura Therapy Centre - Wellness Spa Vellore" 
+             class="img-fluid hero-img">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="services">
+  <div class="container">
+    <div class="bg-title">SERVICES</div>
+    <h2 class="section-heading">Premium Spa & Wellness Services</h2>
+    
+    <!-- Service Categories -->
+    <div class="service-categories mb-5">
+      <button class="category-btn btn btn-outline-primary active" data-category="all">All Services</button>
+      <button class="category-btn btn btn-outline-primary" data-category="therapy">Therapies</button>
+      <button class="category-btn btn btn-outline-primary" data-category="facial">Facial & Beauty</button>
+      <button class="category-btn btn btn-outline-primary" data-category="care">Hand & Foot Care</button>
+    </div>
+
+    <!-- Swiper Container -->
+    <div class="swiper services-swiper">
+      <div class="swiper-wrapper">
+        <!-- Service cards go here (same as your original) -->
+        <div class="swiper-slide" data-category="therapy">
+          <div class="service-card">
+            <img src="{% static 'webiste/images/Foot Reflexology.jpg' %}" alt="Foot Reflexology">
+            <h5 class="service-title">Foot Reflexology</h5>
+            <p class="service-text">Promotes relaxation, improves circulation, and balances body's natural energy through foot pressure points.</p>
+          </div>
+        </div>
+        
+        <!-- Add other service cards here -->
+        
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="about-section">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-5 mb-lg-0" data-aos="fade-right">
+        <img src="https://i.pinimg.com/736x/35/95/8e/35958e26c3b01a594a17979ec55771a4.jpg" 
+             alt="Cura Therapy Centre Interior" 
+             class="img-fluid rounded-xl shadow-soft">
+      </div>
+      <div class="col-lg-6" data-aos="fade-left">
+        <div class="about-card">
+          <h5 class="text-uppercase text-light mb-3">About Us</h5>
+          <h2>Relax, Rejuvenate & Restore at Cura Therapy Centre</h2>
+          <p class="mb-4">At Cura Therapy Centre, we create a sanctuary where wellness meets luxury. Our expert therapists specialize in traditional and modern therapies designed to relieve stress and restore balance.</p>
+          
+          <div class="d-flex flex-wrap gap-3 mb-4">
+            <button class="btn-custom btn-green">
+              <i class="fas fa-check-circle me-2"></i>Reflexology & Massage
+            </button>
+            <button class="btn-custom btn-green">
+              <i class="fas fa-check-circle me-2"></i>Skin Care & Facials
+            </button>
+          </div>
+          
+          <!-- Contact Info -->
+          <div class="about-contact">
+            <div class="contact-item mb-3">
+              <i class="fas fa-clock"></i>
+              <span><strong>Timing:</strong> 10 AM – 8 PM (Mon–Sun)</span>
+            </div>
+            <div class="contact-item mb-3">
+              <i class="fas fa-phone-alt"></i>
+              <span><strong>Call:</strong> <a href="tel:+918610609373" class="text-white">+91 8610609373</a></span>
+            </div>
+            <div class="contact-item mb-4">
+              <i class="fas fa-map-marker-alt"></i>
+              <span><strong>Location:</strong> CMC Eye Hospital Road, Dinakaran Stopping, Vellore</span>
+            </div>
+            <a href="https://maps.app.goo.gl/oQBMuBddd6xnkQsL8" target="_blank" class="btn-custom btn-green w-100">
+              <i class="fas fa-map-marker-alt me-2"></i>Open in Google Maps
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="pricing-section">
+  <div class="container">
+    <div class="text-center mb-5" data-aos="fade-up">
+      <h5 class="text-uppercase text-primary mb-3">Special Offers</h5>
+      <h2 class="display-5 fw-bold text-dark mb-4">Our Premium Packages</h2>
+      <p class="lead text-muted">Experience luxury wellness at affordable prices</p>
+    </div>
+
+    <div class="swiper pricing-swiper">
+      <div class="swiper-wrapper">
+        <!-- Package cards go here (same as your original) -->
+        <div class="swiper-slide">
+          <div class="package-card">
+            <img src="{% static 'webiste/images/Foot Reflexology.jpg' %}" alt="Foot Reflexology" class="package-image">
+            <div class="time-badge">₹499</div>
+            <h3 class="package-title">Foot Reflexology</h3>
+            <p class="text-center mb-4">60 Minutes Session</p>
+            <button class="btn-custom btn-green">Book Now</button>
+          </div>
+        </div>
+        
+        <!-- Add other package cards here -->
+        
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials Section -->
+<section id="testimonials" class="testimonial-section">
+  <div class="container">
+    <h1>TESTIMONIALS</h1>
+    <h2 class="section-heading mb-5">What Our Clients Say</h2>
+    
+    <div class="row g-4">
+      <!-- Testimonial cards go here (same as your original) -->
+      <div class="col-md-6 col-lg-3" data-aos="fade-up">
+        <div class="testimonial-card">
+          <div class="d-flex align-items-center mb-4">
+            <div class="flex-shrink-0">
+              <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Client" class="rounded-circle" width="50">
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h5 class="mb-0">Agi Agilan</h5>
+              <div class="text-warning">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+            </div>
+          </div>
+          <p class="mb-0">"Had the foot reflexology session today — absolutely relaxing! My feet felt so light afterward."</p>
+        </div>
+      </div>
+      
+      <!-- Add other testimonial cards here -->
+      
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer id="contact">
+  <div class="container">
+    <div class="row g-5">
+      <!-- Footer content goes here (same as your original) -->
+    </div>
+  </div>
+</footer>
+
+<!-- Scroll to Top Button -->
+<button id="scrollTopBtn" title="Go to top">
+  <i class="fas fa-chevron-up"></i>
+</button>
+
+<!-- JavaScript -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  // Initialize AOS
+  AOS.init({
+    duration: 1000,
+    once: true,
+    offset: 100
+  });
+
+  // Enhanced Loader
+  window.addEventListener("load", function () {
+    const loader = document.getElementById("loader");
+    setTimeout(() => {
+      loader.classList.add("fade-out");
+      setTimeout(() => {
+        loader.style.display = "none";
+        document.body.style.overflow = "auto";
+      }, 800);
+    }, 2000);
+  });
+
+  // Mobile Menu Toggle
+  document.querySelector(".menu-toggle").addEventListener("click", function() {
+    document.querySelector(".nav-links").classList.add("active");
+    document.body.style.overflow = "hidden";
+  });
+
+  document.querySelector(".close-menu").addEventListener("click", function() {
+    document.querySelector(".nav-links").classList.remove("active");
+    document.body.style.overflow = "auto";
+  });
+
+  // Close menu on link click
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', function() {
+      document.querySelector(".nav-links").classList.remove("active");
+      document.body.style.overflow = "auto";
+    });
+  });
+
+  // Navbar scroll effect
+  window.addEventListener("scroll", function() {
+    const navbar = document.querySelector(".custom-navbar");
+    if (window.scrollY > 50) {
+      navbar.classList.add("scrolled");
+    } else {
+      navbar.classList.remove("scrolled");
+    }
+  });
+
+  // Scroll to Top Button
+  const scrollTopBtn = document.getElementById("scrollTopBtn");
+  window.onscroll = function() {
+    if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+      scrollTopBtn.style.display = "block";
+    } else {
+      scrollTopBtn.style.display = "none";
+    }
+  };
+
+  scrollTopBtn.onclick = function() {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  };
+
+  // Initialize Swipers
+  const servicesSwiper = new Swiper('.services-swiper', {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    loop: true,
+    autoplay: {
+      delay: 3000,
+      disableOnInteraction: false,
+    },
+    pagination: {
+      el: '.services-swiper .swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      nextEl: '.services-swiper .swiper-button-next',
+      prevEl: '.services-swiper .swiper-button-prev',
+    },
+    breakpoints: {
+      576: { slidesPerView: 2 },
+      992: { slidesPerView: 3 },
+      1200: { slidesPerView: 4 }
+    }
+  });
+
+  const pricingSwiper = new Swiper('.pricing-swiper', {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    loop: true,
+    autoplay: {
+      delay: 4000,
+      disableOnInteraction: false,
+    },
+    pagination: {
+      el: '.pricing-swiper .swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      nextEl: '.pricing-swiper .swiper-button-next',
+      prevEl: '.pricing-swiper .swiper-button-prev',
+    },
+    breakpoints: {
+      576: { slidesPerView: 2 },
+      992: { slidesPerView: 3 },
+      1200: { slidesPerView: 4 }
+    }
+  });
+
+  // Service filtering
+  document.querySelectorAll('.category-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      this.classList.add('active');
+      
+      const category = this.dataset.category;
+      const slides = document.querySelectorAll('.services-swiper .swiper-slide');
+      
+      slides.forEach(slide => {
+        if (category === 'all' || slide.dataset.category === category) {
+          slide.style.display = 'block';
+        } else {
+          slide.style.display = 'none';
+        }
+      });
+      
+      servicesSwiper.update();
+    });
+  });
+
+  // Smooth scrolling for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href');
+      if (targetId === '#') return;
+      
+      const targetElement = document.querySelector(targetId);
+      if (targetElement) {
+        window.scrollTo({
+          top: targetElement.offsetTop - 80,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>

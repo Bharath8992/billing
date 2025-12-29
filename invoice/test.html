@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Our Packages</title>
+
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
+
+<style>
+/* ================= PRICING SECTION ================= */
+.pricing-section {
+  padding: 80px 20px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.pricing-subtitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #7a3e2c;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.pricing-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 50px;
+}
+
+/* ================= PACKAGE CARD ================= */
+.package-card {
+  background: rgba(46, 125, 50, 0.9);
+  border-radius: 30px;
+  padding: 30px 20px;
+  color: #fff;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: 0.3s;
+}
+
+.package-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+/* ================= IMAGE ================= */
+.package-image {
+  width: 220px;
+  height: 280px;
+  border-radius: 50% / 60%;
+  object-fit: cover;
+  border: 8px solid #fff;
+  display: block;
+  margin: 0 auto 20px;
+  box-sizing: border-box;
+}
+
+/* ================= PRICE BADGE ================= */
+.time-badge {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  color: #2ea62c;
+  font-size: 18px;
+  font-weight: 800;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ================= TITLE ================= */
+.package-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  margin: 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.6);
+}
+
+/* ================= BUTTON ================= */
+.btn-custom {
+  background: #fff;
+  color: #2ea62c;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  font-weight: 600;
+  margin-top: auto;
+  cursor: pointer;
+}
+
+.btn-custom:hover {
+  background: #16205a;
+  color: #fff;
+}
+
+/* ================= SWIPER ================= */
+.pricing-swiper {
+  padding-bottom: 60px;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: #2ea62c;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .package-image {
+    width: 180px;
+    height: 230px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<section id="pricing" class="pricing-section">
+  <div class="container">
+    <div class="pricing-subtitle">10% to 30% OFF!</div>
+    <h2 class="pricing-title">Our Packages</h2>
+
+    <div class="swiper pricing-swiper">
+      <div class="swiper-wrapper">
+
+        <div class="swiper-slide">
+          <div class="package-card">
+            <img src="{% static 'webiste/images/Foot Reflexology.jpg' %}" class="package-image">
+            <div class="time-badge">₹499</div>
+            <h3 class="package-title">Foot Reflexology</h3>
+            <button class="btn-custom">BOOK NOW</button>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="package-card">
+            <img src="{% static 'webiste/images/Steam Therapy.jpg' %}" class="package-image">
+            <div class="time-badge">₹799</div>
+            <h3 class="package-title">Body Massage</h3>
+            <button class="btn-custom">BOOK NOW</button>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="package-card">
+            <img src="{% static 'webiste/images/Pedicure & Manicure.jpg' %}" class="package-image">
+            <div class="time-badge">₹499</div>
+            <h3 class="package-title">Pedicure</h3>
+            <button class="btn-custom">BOOK NOW</button>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="package-card">
+            <img src="{% static 'webiste/images/Facials.jpg' %}" class="package-image">
+            <div class="time-badge">₹499</div>
+            <h3 class="package-title">Facial</h3>
+            <button class="btn-custom">BOOK NOW</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<script>
+new Swiper(".pricing-swiper", {
+  slidesPerView: 1,
+  spaceBetween: 20,
+  loop: true,
+  navigation: {
+    nextEl: ".swiper-button-next",
+    prevEl: ".swiper-button-prev",
+  },
+  pagination: {
+    el: ".swiper-pagination",
+    clickable: true,
+  },
+  breakpoints: {
+    768: { slidesPerView: 2 },
+    992: { slidesPerView: 3 },
+  }
+});
+</script>
+
+</body>
+</html>

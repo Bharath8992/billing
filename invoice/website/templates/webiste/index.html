@@ -1,0 +1,2260 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cura Therapy Centre - Best Foot Reflexology in Vellore</title>
+<meta name="description" content="Experience premium foot reflexology, massage therapies, and spa treatments at Blue Lounge Spa in Vellore. Relax, rejuvenate and restore your wellbeing.">
+
+<!-- Bootstrap CSS -->
+<link href="https://fonts.googleapis.com/css2?family=Nova+Cut&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Font Awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<!-- Swiper JS for sliders -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<link rel="stylesheet" href="{% static 'website/css/style.css' %}">
+
+
+<style>
+
+/* ======== Cura Loader ======== */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #e3fff2, #c7fce5, #b0f3d0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: 'Poppins', sans-serif;
+  transition: opacity 0.8s ease;
+}
+
+/* Fade-out effect */
+#loader.fade-out {
+  opacity: 0;
+}
+
+/* 🌿 Rotating Circle */
+.rotating-circle {
+  width: 120px;
+  height: 120px;
+  border: 6px solid rgba(0, 184, 118, 0.3);
+  border-top-color: #00b876;
+  border-radius: 50%;
+  animation: spin 1.5s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(0, 184, 118, 0.3);
+}
+
+/* Inner glowing dot */
+.inner-circle {
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, #00b876, #008f5c);
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(0, 184, 118, 0.7);
+  animation: pulse 1.2s ease-in-out infinite alternate;
+}
+
+/* Rotating animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pulse animation */
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* 🌿 Text */
+.loader-text {
+  text-align: center;
+  font-weight: 600;
+  color: #034d3a;
+  font-size: 2rem;
+  margin-top: 25px;
+  line-height: 1.5;
+  opacity: 0;
+  animation: fadeIn 1s ease forwards 0.8s;
+}
+
+.loader-text span {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #00b876;
+}
+
+/* Smooth fade-in */
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Progress bar container */
+.loader-bar {
+  width: 150px;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  margin-top: 25px;
+  overflow: hidden;
+}
+
+/* Progress animation */
+.loader-progress {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #00b876, #4be391);
+  border-radius: 5px;
+  animation: progress 2s ease-in-out forwards;
+}
+
+@keyframes progress {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+  :root{
+     --bg: url("../images/hero-bg.png");
+    /* --overlay: rgba(0,0,0,0.4); */
+    --hero-h: 90vh;
+    --zoom-duration: 20s;
+    
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Open Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
+  .custom-navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: rgba(46, 125, 50, 0.9);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 40px;
+    z-index: 1000;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  /* When scrolling - solid background */
+  .custom-navbar.scrolled {
+    background: rgba(46, 125, 50, 0.9);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .custom-navbar .logo {
+    display: flex;
+    align-items: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #fff;
+  }
+
+  .custom-navbar .logo img {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    border: 2px solid #fff;
+  }
+
+  .custom-navbar .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .custom-navbar .nav-links li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.3s ease;
+  }
+
+  .custom-navbar .nav-links li a:hover {
+    color: #000;
+  }
+
+  /* Mobile menu toggle */
+  .menu-toggle {
+    display: none;
+    font-size: 24px;
+    color: #fff;
+    cursor: pointer;
+    background: none;
+    border: none;
+    z-index: 1001;
+  }
+
+  .close-menu {
+    display: none;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    color: #fff;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Responsive */
+  @media (max-width: 992px) {
+    .custom-navbar {
+      flex-wrap: wrap;
+      padding: 12px 20px;
+    }
+
+   
+  .custom-navbar .nav-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 15px;
+    background: rgba(46, 125, 50, 0.95);
+    border-radius: 8px;
+    padding: 50px 20px 20px; /* added 20px left & right padding */
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    box-sizing: border-box; /* ensures padding is counted inside width */
+  }
+
+  .custom-navbar .nav-links li {
+    text-align: center;
+    padding: 15px 0;
+  }
+
+
+    .custom-navbar .nav-links.active {
+      display: flex;
+    }
+
+    .menu-toggle {
+      display: block;
+    }
+    
+    .close-menu {
+      display: block;
+    }
+    
+    /* Hide menu button when menu is open */
+    .custom-navbar .menu-toggle.hidden {
+      display: none;
+    }
+  }
+
+
+  /* ========== ENHANCED HERO SECTION ========== */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  color: white;
+  padding-top: 120px;
+  padding-bottom: 4rem;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)),
+              url('{% static "webiste/images/hero-bg.png" %}') center/cover;
+  transform-origin: center;
+  will-change: transform;
+  z-index: 0;
+  animation: bg-zoom 20s ease-in-out infinite alternate;
+}
+
+.hero .container {
+  position: relative;
+  z-index: 2;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero h3 {
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.hero-img {
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: perspective(1000px) rotateY(-5deg);
+  transition: transform 0.5s ease;
+}
+
+.hero-img:hover {
+  transform: perspective(1000px) rotateY(0deg);
+}
+
+@keyframes bg-zoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+
+   /* Services Section */
+    .services {
+      font-family: 'Times New Roman', serif;
+      --bg: url('images/bgl1.jpg');
+      background: white;
+      padding: 60px 0;
+      overflow: hidden;
+    }
+
+    .services .bg-title {
+      font-size: 140px;
+      font-weight: bold;
+      color:  rgba(139, 237, 144, 0.9);
+      text-align: center;
+      line-height: 1;
+      margin-top: 30px;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 0;
+    }
+
+    .services .section-heading {
+      font-size: 54px;
+      font-weight: bold;
+      color: #1c2a20;
+      text-align: center;
+      margin-bottom: 50px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .services .service-card {
+      background: rgba(46, 125, 50, 0.9);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      text-align: center;
+      margin-top: 190px;
+      padding: 60px 20px 25px 20px;
+      position: relative;
+      overflow: visible;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 400px; /* Fixed height for all cards */
+    }
+
+    .services .service-card img {
+      width: 80%;
+      height: 180px;
+      border-radius: 8px;
+      display: block;
+      margin: 0 auto;
+      position: absolute;
+      top: -180px;
+      left: 50%;
+      transform: translateX(-50%);
+      object-fit: cover;
+    }
+
+    
+
+    .services .service-icon {
+      font-size: 28px;
+      color: #e76f51;
+      margin-bottom: 10px;
+    }
+
+    .services .service-title {
+      color: #fefdfd;
+      font-size: 16px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .services .service-text {
+      font-size: 20px;
+      color: #fafafa;
+      padding: 0 10px;
+      margin: 0;
+      flex-grow: 1; /* Makes text take up remaining space */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Swiper customization for services */
+    .services-swiper {
+      padding: 20px 10px 60px;
+      width: 100%;
+      overflow: hidden;
+    }
+    
+    .services-swiper .swiper-pagination-bullet {
+      width: 12px;
+      height: 12px;
+      background: rgba(46, 125, 50, 0.9);
+      opacity: 0.5;
+    }
+    
+    .services-swiper .swiper-pagination-bullet-active {
+      opacity: 1;
+    }
+    
+    .services-swiper .swiper-button-next,
+    .services-swiper .swiper-button-prev {
+      color: #2ea62c;
+      background: rgba(255, 255, 255, 0.8);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .services-swiper .swiper-button-next:after,
+    .services-swiper .swiper-button-prev:after {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    /* Category tabs */
+    .service-categories {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    
+    .category-btn {
+      padding: 10px 20px;
+      background: #fff;
+      border: 1px solid #2ea62c;
+      border-radius: 30px;
+      color: #2ea62c;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .category-btn.active, .category-btn:hover {
+      background: #2ea62c;
+      color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .services .bg-title {
+        font-size: 80px;
+      }
+      .services .section-heading {
+        font-size: 32px;
+        margin-top: -30px;
+      }
+      .services .service-card {
+        margin-top: 120px;
+        padding-top: 50px;
+        min-height: 350px; /* Adjusted for mobile */
+      }
+      .services .service-card img {
+        top: -130px;
+        width: 70%;
+        height: 150px;
+      }
+      
+      .services-swiper .swiper-button-next,
+      .services-swiper .swiper-button-prev {
+        display: none;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .services .bg-title {
+        font-size: 60px;
+      }
+      .services .section-heading {
+        font-size: 26px;
+      }
+      .services .service-card {
+        margin-top: 100px;
+        padding: 40px 15px 20px 15px;
+        min-height: 320px; /* Further adjusted for small screens */
+      }
+      .services .service-card img {
+        top: -100px;
+        width: 65%;
+        height: 120px;
+      }
+      .services .service-text {
+        font-size: 16px;
+      }
+      
+      .service-categories {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .category-btn {
+        width: 80%;
+        margin-bottom: 10px;
+      }
+    }
+
+.about-section {
+      padding: 3rem 0;
+      position: relative;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .about-card {
+      background: url("https://i.pinimg.com/736x/48/88/2e/48882ebcc4bf0c10e56db981f0790401.jpg") center/cover no-repeat;
+      color: #fff;
+      padding: 2rem;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .about-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); /* dark overlay */
+      z-index: 0;
+    }
+
+    .about-card * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .about-card h5 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+      color: #d3c6b3;
+    }
+
+    .about-card h2 {
+      font-family: 'Merriweather', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .about-card p {
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .btn-custom {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border-radius: 4px;
+      border: none;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .btn-green {
+      background: #fff;
+      color: #000;
+      margin-right: 1rem;
+      box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn-green i {
+      color: green;
+      margin-right: 6px;
+    }
+
+    .btn-green:hover {
+      background: #f2f2f2;
+    }
+
+    .btn-white {
+      background: #fff;
+      color: #000;
+      box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn-white i {
+      color: green;
+      margin-right: 6px;
+    }
+
+    .btn-white:hover {
+      background: #f2f2f2;
+    }
+
+    .about-extra {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-top: 1rem;
+      color: #eee;
+    }
+
+    .about-img img {
+      width: 100%;
+      border-radius: 4px;
+      object-fit: cover;
+    }
+
+    @media (max-width: 768px) {
+      .about-card {
+        margin-top: 1.5rem;
+      }
+      .about-card h2 {
+        font-size: 1.6rem;
+      }
+      .btn-custom {
+        margin-bottom: 10px;
+        width: 100%;
+      }
+    }
+
+    
+
+.testimonial-section {
+    text-align: center;
+    padding: 80px 20px;
+    overflow: hidden;
+}
+
+.testimonial-section h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 90px;
+    font-weight: 700;
+    color: rgba(115, 244, 113, 0.5);
+    margin-bottom: 10px;
+    line-height: 1; /* Added for better line spacing */
+    word-wrap: break-word; /* Ensure long words break properly */
+    overflow-wrap: break-word; /* Additional word breaking */
+}
+
+.testimonial-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: #1c2b25;
+    margin-bottom: 60px;
+    line-height: 1.3; /* Added for better readability */
+}
+
+.testimonial-card {
+    background: rgba(46, 125, 50, 0.9);
+    border-radius: 10px;
+    padding: 25px 20px;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.08);
+    text-align: left;
+    transform: rotate(-4deg);
+    transition: all 0.3s ease;
+    height: 100%;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.testimonial-card:nth-child(2) {
+    transform: rotate(2deg);
+}
+.testimonial-card:nth-child(3) {
+    transform: rotate(-2deg);
+}
+.testimonial-card:nth-child(4) {
+    transform: rotate(3deg);
+}
+
+.testimonial-card:hover {
+    background: rgba(46, 125, 50, 0.9);
+    transform: scale(1.05) rotate(0deg);
+    box-shadow: 0px 10px 25px rgba(0,0,0,0.12);
+}
+
+.testimonial-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.testimonial-header img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+.testimonial-header h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fffcfc;
+}
+
+.testimonial-card p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #f6f4f4;
+    margin: 0;
+    flex-grow: 1;
+}
+
+/* Improved Responsive Design */
+@media (max-width: 1200px) {
+    .testimonial-section h1 {
+        font-size: 80px;
+    }
+    .testimonial-section h2 {
+        font-size: 32px;
+    }
+}
+
+@media (max-width: 992px) {
+    .testimonial-section h1 {
+        font-size: 70px;
+        margin-bottom: 5px;
+    }
+    .testimonial-section h2 {
+        font-size: 28px;
+        margin-bottom: 40px;
+    }
+    .testimonial-card {
+        margin-bottom: 30px;
+        transform: rotate(0deg) !important;
+        min-height: 220px;
+    }
+}
+
+@media (max-width: 768px) {
+    .testimonial-section {
+        padding: 60px 15px;
+    }
+    
+    .testimonial-section h1 {
+        font-size: 50px; /* Reduced from 60px for better mobile display */
+        line-height: 1.1;
+        margin-bottom: 8px;
+    }
+    
+    .testimonial-section h2 {
+        font-size: 24px;
+        margin-bottom: 30px;
+        line-height: 1.3;
+    }
+    
+    .testimonial-card {
+        min-height: 200px;
+        padding: 20px 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .testimonial-section {
+        padding: 50px 10px;
+    }
+    
+    .testimonial-section h1 {
+        font-size: 40px; /* Further reduced for small screens */
+        line-height: 1.1;
+        margin-bottom: 5px;
+    }
+    
+    .testimonial-section h2 {
+        font-size: 20px; /* Reduced from 22px */
+        margin-bottom: 25px;
+        padding: 0 10px; /* Added padding to prevent text touching edges */
+    }
+    
+    .testimonial-card {
+        min-height: 180px; /* Adjusted for mobile */
+        padding: 15px 12px;
+    }
+    
+    .testimonial-header h5 {
+        font-size: 14px;
+    }
+    
+    .testimonial-card p {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+}
+
+/* Extra small devices (phones under 400px) */
+@media (max-width: 400px) {
+    .testimonial-section h1 {
+        font-size: 36px; /* Even smaller for very small screens */
+    }
+    
+    .testimonial-section h2 {
+        font-size: 18px;
+    }
+    
+    .testimonial-card {
+        min-height: 170px;
+    }
+}
+
+    .case-section {
+      padding: 80px 20px;
+      background: linear-gradient(to bottom right, #fff 60%, #fdf3e8);
+      overflow: hidden;
+    }
+
+    .case-subtitle {
+      color: #d86f52;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .case-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
+      font-weight: 700;
+      color: #1c2b25;
+      margin-bottom: 40px;
+    }
+
+    .case-details {
+      margin-top: 20px;
+    }
+
+    .case-details .small-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: #d86f52;
+      margin-bottom: 5px;
+    }
+
+    .case-details h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: #1c2b25;
+      margin-bottom: 20px;
+    }
+    
+    .case-details p {
+      color: #555;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .case-details .btn-custom {
+      background: #fff;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .case-details .btn-custom:hover {
+      background: #1c2b25;
+      color: #fff;
+      border-color: #1c2b25;
+    }
+
+    .case-images {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .case-images img {
+      border-radius: 4px;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .case-images img:hover {
+      transform: scale(1.05);
+    }
+
+    .case-images .main-img {
+      width: 100%;
+      max-width: 400px;
+      height: 450px;
+    }
+
+    .case-images .small-img {
+      width: 280px;
+      height: auto;
+      position: absolute;
+      top: 160px;
+      left: 350px;
+    }
+
+    .case-images .small-img-2 {
+      width: 250px;
+      height: auto;
+      position: absolute;
+      top: 160px;
+      left: 360px;
+    }
+
+    .nav-arrows {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .nav-arrows button {
+      background: #ffef9f;
+      border: none;
+      width: 40px;
+      height: 40px;
+      margin-left: 8px;
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-arrows button:hover {
+      background: #ffd84c;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .case-images {
+        justify-content: center;
+      }
+      .case-details {
+        margin-top: 40px;
+      }
+      .case-images .small-img,
+      .case-images .small-img-2 {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin-top: 15px;
+      }
+    }
+
+
+
+ .pricing-section {
+  padding: 80px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-subtitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #7a3e2c;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.pricing-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 50px;
+}
+
+/* Package Card */
+.package-card {
+  background: rgba(46, 125, 50, 0.9);
+  border-radius: 30px;
+  padding: 30px 20px;
+  color: #fff;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.package-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+/* Image */
+.package-image {
+  width: 220px;
+  height: 280px;
+  border-radius: 50% / 60%;
+  object-fit: cover;
+
+  border: 8px solid #fff;
+  box-sizing: border-box;   /* ⭐ FIX 1 */
+
+  display: block;           /* ⭐ FIX 2 */
+  margin: 0 auto 20px;      /* ⭐ FIX 3 */
+}
+
+
+/* Badge */
+.time-badge {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  color: #2ea62c;
+  font-size: 20px;
+  font-weight: 800;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+
+.time-badge small {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* Package Title */
+.package-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 20px 0 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.6);
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+/* Features */
+.package-features {
+  text-align: center;
+  margin: 20px auto;
+  max-width: 250px;
+  list-style: none;
+  padding: 0;
+}
+
+.package-features li {
+  font-size: 20px;
+  margin: 10px 0;
+  color: #fff;
+}
+
+.package-features i {
+  margin-right: 10px;
+  color: #ffdddd;
+}
+
+/* Button */
+.btn-custom {
+  background: #fff;
+  color: #2ea62c;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: none;
+  transition: all 0.3s ease;
+  margin-top: auto; /* This pushes button to bottom */
+}
+
+.btn-custom:hover {
+  background: #16205a;
+  color: #fff;
+}
+
+/* Swiper customization for pricing */
+.pricing-swiper {
+  padding: 20px 10px 60px;
+  overflow: hidden;
+}
+
+.pricing-swiper .swiper-wrapper {
+  align-items: stretch;
+}
+
+.pricing-swiper .swiper-slide {
+  height: auto;
+}
+
+.pricing-swiper .swiper-pagination-bullet {
+  width: 12px;
+  height: 12px;
+  background: #2ea62c;
+  opacity: 0.5;
+}
+
+.pricing-swiper .swiper-pagination-bullet-active {
+  opacity: 1;
+}
+
+.pricing-swiper .swiper-button-next,
+.pricing-swiper .swiper-button-prev {
+  color: #2ea62c;
+  background: rgba(255, 255, 255, 0.8);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.pricing-swiper .swiper-button-next:after,
+.pricing-swiper .swiper-button-prev:after {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .pricing-title {
+    font-size: 28px;
+  }
+  .package-card {
+    margin-bottom: 30px;
+  }
+  
+  .pricing-swiper .swiper-button-next,
+  .pricing-swiper .swiper-button-prev {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .pricing-section .row {
+    flex-direction: column;
+  }
+  .package-image {
+    width: 180px;
+    height: 230px;
+  }
+  .time-badge {
+    width: 70px;
+    height: 70px;
+    font-size: 16px;
+  }
+}
+
+    footer {
+      background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), 
+                  url('https://i.pinimg.com/1200x/0f/b6/12/0fb61230057c3538166ee19510761c45.jpg') center/cover no-repeat;
+      color: #fff;
+      padding: 60px 0 30px;
+      font-family: 'Georgia', serif;
+      overflow: hidden;
+    }
+
+    footer .footer-logo img {
+      max-width: 200px;
+    }
+
+    footer p {
+      font-size: 15px;
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    footer h5 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      font-weight: 600;
+      position: relative;
+      display: inline-block;
+    }
+
+    footer h5::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 50px;
+      height: 2px;
+      background: #32a636;
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    footer ul li {
+      margin-bottom: 10px;
+    }
+
+    footer ul li a {
+      color: #fff;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-size: 15px;
+    }
+
+    footer ul li a:hover {
+      color: #32a636;
+      padding-left: 5px;
+    }
+
+    footer .social-icons a {
+      display: inline-block;
+      margin-right: 10px;
+      background: #32a636;
+      color: #fff;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 38px;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+
+    footer .social-icons a:hover {
+      background: #27862c;
+    }
+
+    footer .availability {
+      font-weight: 600;
+      margin-top: 15px;
+    }
+
+    footer .map iframe {
+      border-radius: 8px;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    footer .copyright {
+      font-size: 14px;
+      color: #ccc;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      padding-top: 15px;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 767px) {
+      footer {
+        text-align: center;
+      }
+      footer .social-icons {
+        margin-top: 20px;
+      }
+      footer h5::after {
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+
+    /* Contact info styling */
+    .contact-info {
+      background: rgba(46, 125, 50, 0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    .contact-info p {
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+    }
+    
+    .contact-info i {
+      margin-right: 10px;
+      color: #2ea62c;
+      font-size: 18px;
+      width: 24px;
+    }
+
+    .about-contact {
+  margin-top: 1.5rem;
+}
+
+.about-contact .contact-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #fff;
+}
+
+.about-contact .contact-item i {
+  min-width: 22px;   /* keeps icons aligned in one column */
+  margin-right: 10px;
+  color: #8bed90;    /* theme green */
+  font-size: 1rem;
+  margin-top: 3px;
+}
+
+.about-contact .contact-item a {
+  color: #fff;
+  text-decoration: underline;
+  transition: color 0.3s;
+}
+
+.about-contact .contact-item a:hover {
+  color: #8bed90;
+}
+
+@media (max-width: 768px) {
+  .about-contact .contact-item {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+}
+.about-contact .map-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #2e7d32;   /* dark green */
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.about-contact .map-btn:hover {
+  background: #43a047;   /* lighter green on hover */
+  color: #040404;
+  text-decoration: none;
+}
+
+/* Scroll to top button */
+#scrollTopBtn {
+  display: none; /* Hidden by default */
+  position: fixed;
+  bottom: 30px;
+  right: 20px;
+  z-index: 99;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  outline: none;
+  background: linear-gradient(135deg, #2e7d32, #43a047); /* Stylish green gradient */
+  color: white;
+  cursor: pointer;
+  padding: 12px 18px;
+  border-radius: 12px; /* Box with slightly rounded corners */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+}
+
+#scrollTopBtn:hover {
+  background: linear-gradient(135deg, #1b5e20, #2e7d32);
+  transform: translateY(-3px); /* Floating effect */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+
+.side-buttons {
+  position: fixed;
+  top: 40%;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 999;
+}
+
+.side-btn {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  background: #e0aa0f;
+  color: #222;
+  font-size: 20px;         /* increased font size */
+  font-weight: bold;
+  padding: 25px 12px;      /* larger clickable area */
+  border-radius: 10px 0 0 10px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.side-btn:hover {
+  background: #ffcc00;
+  color: #000;
+  transform: translateX(-10px) scale(1.1);
+}
+
+/* Optional: specific color for announcements */
+.announcement-btn {
+  background: linear-gradient(180deg, #f2b705, #d19a04);
+}
+
+/* Optional: specific color for admission enquiry */
+.enquiry-btn {
+  background: linear-gradient(180deg, #f2a654, #e98b2a);
+}
+
+
+
+
+  /* Card container */
+  #scrollCard {
+    position: fixed;
+    top: 50%;
+    left: -600px; /* start off-screen left */
+    transform: translateY(-50%);
+    display: none;
+    z-index: 1000;
+    width: 600px;
+    max-width: 90%;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+    animation: slideIn 0.8s forwards;
+  }
+
+  #scrollCard img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 15px;
+  }
+
+  #scrollCard .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    line-height: 28px;
+    text-align: center;
+  }
+
+  @keyframes slideIn {
+    from { left: -600px; opacity: 0; }
+    to { left: 50%; opacity: 1; transform: translateX(-50%) translateY(-50%); }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="rotating-circle">
+    <div class="inner-circle"></div>
+  </div>
+  <h1 class="loader-text">Welcome to<br><span>Cura Therapy Centre</span></h1>
+  <div class="loader-bar">
+    <div class="loader-progress"></div>
+  </div>
+</div>
+
+<!-- Navbar -->
+<nav class="custom-navbar">
+  <div class="logo">
+    <img src="{% static 'webiste/images/logo.png' %}">
+
+    {% comment %} <img src="images/logo.png" alt="Blue Lounge Spa Logo"> {% endcomment %}
+    <span>Cura Therapy Centre</span>
+  </div>
+  
+  <ul class="nav-links">
+    <button class="close-menu"><i class="fas fa-times"></i></button>
+    <li><a href="#home"><i class="fas fa-home"></i> Home</a></li>
+    <li><a href="#services"><i class="fas fa-hand-holding-heart"></i> Services</a></li>
+    <li>
+  <a href="{% url 'menu' %}">
+    <i class="fas fa-clipboard-list"></i> Menu Card
+  </a>
+</li>
+
+    {% comment %} <li><a href="menu.html"><i class="fas fa-clipboard-list"></i> Menu Card</a></li> {% endcomment %}
+    <li><a href="#about"><i class="fas fa-user"></i> About</a></li>
+    <li><a href="#pricing"><i class="fas fa-tags"></i> Package</a></li>
+    <li><a href="#testimonials"><i class="fas fa-comment-dots"></i> Testimonials</a></li>
+    <li><a href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
+
+    
+  </ul>
+
+  <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+</nav>
+
+<!-- 🌿 Fixed Right Sidebar Buttons -->
+<div class="side-buttons">
+
+
+
+  <a href="{% url 'menu' %}" class="side-btn">View Menu</a>
+</div>
+
+
+
+<!-- Hero Section -->
+<section id="home" class="hero">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-5 mb-lg-0" data-aos="fade-right">
+        <h1 class="text-gradient">Vellore's Premium Wellness & Reflexology Centre</h1>
+        <h3 class="mb-4">Experience ultimate relaxation with our professional foot reflexology, therapeutic massages, skin care treatments, and holistic wellness therapies. Affordable luxury starting from ₹499.</h3>
+        <div class="d-flex gap-3">
+          <a href="#contact" class="btn btn-custom btn-green">
+            <i class="fas fa-calendar-alt me-2"></i>Book Appointment
+          </a>
+          <a href="#services" class="btn btn-custom btn-green">
+            <i class="fas fa-spa me-2"></i>View Services
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6" data-aos="fade-left">
+        <img src="{% static 'webiste/images/hero2.jpg' %}" 
+             alt="Cura Therapy Centre - Wellness Spa Vellore" 
+             class="img-fluid hero-img">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Services Section -->
+  <section id="services" class="services" data-aos="zoom-in" data-aos-delay="200">
+    <div class="container">
+
+      <!-- Background Title -->
+      <div class="bg-title">SERVICE</div>
+
+      <!-- Foreground Heading -->
+      <h2 class="section-heading mt-3">PREMIUM SPA & WELLNESS SERVICES</h2>
+      
+      <!-- Service Categories -->
+      <div class="service-categories">
+        <button class="category-btn active" data-category="all">All Services</button>
+        <button class="category-btn" data-category="therapy">Therapy</button>
+        <button class="category-btn" data-category="facial">Facial & Beauty</button>
+        <button class="category-btn" data-category="care">Hand & Foot Care</button>
+      </div>
+
+      <!-- Service Cards Slider -->
+      <div class="swiper services-swiper">
+        <div class="swiper-wrapper">
+          <!-- Foot Reflexology -->
+          <div class="swiper-slide" data-category="therapy">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Foot Reflexology.jpg' %}">
+              {% comment %} <img src="images/Foot Reflexology.jpg" alt="Foot Reflexology Therapy"> {% endcomment %}
+              
+              <h5 class="service-title">Foot Reflexology Therapy</h5>
+              <p class="service-text">
+                A healing therapy that applies pressure to specific points on the feet, promoting relaxation, improving blood circulation, and balancing the body's natural energy.
+              </p>
+            </div>
+          </div>
+
+          <!-- Swedish Oil Therapy -->
+          <div class="swiper-slide" data-category="therapy">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Swedish Oil Therapy.jpg' %}">
+              {% comment %} <img src="images/Swedish Oil Therapy.jpg" alt="Swedish Oil Therapy"> {% endcomment %}
+              <!-- <div class="service-icon">💆‍♂️</div> -->
+              <h5 class="service-title">Swedish Oil Therapy</h5>
+              <p class="service-text">
+                A soothing oil-based massage that helps reduce stress, improve circulation, and leave the body refreshed and rejuvenated.
+              </p>
+            </div>
+          </div>
+
+          <!-- Deep Tissue Therapy -->
+          <div class="swiper-slide" data-category="therapy">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Deep Tissue  Therapy.jpg' %}">
+              {% comment %} <img src="images/Deep Tissue  Therapy.jpg" alt="Deep Tissue Therapy"> {% endcomment %}
+              <!-- <div class="service-icon">💪</div> -->
+              <h5 class="service-title">Deep Tissue Therapy</h5>
+              <p class="service-text">
+                Targets deep layers of muscles and connective tissue with firm pressure to relieve chronic pain, stiffness, and muscle tightness.
+              </p>
+            </div>
+          </div>
+
+          <!-- Hot Stone Therapy -->
+          <div class="swiper-slide" data-category="therapy">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Hot Stone Therapy.jpg' %}">
+              {% comment %} <img src="images/Hot Stone Therapy.jpg" alt="Hot Stone Therapy"> {% endcomment %}
+              <!-- <div class="service-icon">🔥</div> -->
+              <h5 class="service-title">Hot Stone Therapy</h5>
+              <p class="service-text">
+                Heated smooth stones are placed on the body to release tension, increase circulation, and provide deep relaxation.
+              </p>
+            </div>
+          </div>
+
+          <!-- Thai Therapy -->
+          <div class="swiper-slide" data-category="therapy">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Thai Therapy.jpg' %}">
+              {% comment %} <img src="images/Thai Therapy.jpg" alt="Thai Therapy"> {% endcomment %}
+              <!-- <div class="service-icon">🧘‍♀️</div> -->
+              <h5 class="service-title">Thai Therapy</h5>
+              <p class="service-text">
+                A traditional therapy that combines gentle stretching and rhythmic pressure along the body's energy lines to enhance flexibility, release stress, and restore energy balance.
+              </p>
+            </div>
+          </div>
+
+          <!-- Cupping Therapy -->
+          <div class="swiper-slide" data-category="therapy">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Cupping Therapy.jpg' %}">
+              {% comment %} <img src="images/Cupping Therapy.jpg" alt="Cupping Therapy"> {% endcomment %}
+              <!-- <div class="service-icon">🥘</div> -->
+              <h5 class="service-title">Cupping Therapy</h5>
+              <p class="service-text">
+                An ancient method using suction cups on the skin to relieve muscle pain, improve circulation, and promote healing.
+              </p>
+            </div>
+          </div>
+
+          <!-- Aromatherapy -->
+          <div class="swiper-slide" data-category="therapy">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Aromatherapy.jpg' %}">
+              {% comment %} <img src="images/Aromatherapy.jpg" alt="Aromatherapy"> {% endcomment %}
+              <!-- <div class="service-icon">🌿</div> -->
+              <h5 class="service-title">Aromatherapy</h5>
+              <p class="service-text">
+                A holistic therapy using essential oils to stimulate the senses, relax the body, and support emotional and physical well-being.
+              </p>
+            </div>
+          </div>
+
+          <!-- Steam Therapy -->
+          <div class="swiper-slide" data-category="therapy">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Steam Therapy.jpg' %}">
+              {% comment %} <img src="images/Steam Therapy.jpg" alt="Steam Therapy"> {% endcomment %}
+              <!-- <div class="service-icon">💨</div> -->
+              <h5 class="service-title">Steam Therapy</h5>
+              <p class="service-text">
+                A soothing treatment that uses warm steam to open pores, release toxins, improve circulation, and relax both body and mind. It also helps in skin cleansing and muscle relaxation.
+              </p>
+            </div>
+          </div>
+
+          <!-- Facials -->
+          <div class="swiper-slide" data-category="facial">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Facials.jpg' %}">
+              {% comment %} <img src="images/Facials.jpg" alt="Facials"> {% endcomment %}
+              <!-- <div class="service-icon">💆‍♀️</div> -->
+              <h5 class="service-title">Facials - Skin Care & Beauty</h5>
+              <p class="service-text">
+                Customized treatments to cleanse, exfoliate, and hydrate, leaving the skin glowing, healthy, and refreshed.
+              </p>
+            </div>
+          </div>
+
+          <!-- Hydra Facial -->
+          <div class="swiper-slide" data-category="facial">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Hydra Facial.jpg' %}">
+              {% comment %} <img src="images/Hydra Facial.jpg" alt="Hydra Facial"> {% endcomment %}
+              <!-- <div class="service-icon">✨</div> -->
+              <h5 class="service-title">Hydra Facial</h5>
+              <p class="service-text">
+                An advanced facial that deeply cleans, exfoliates, and hydrates the skin, unclogs pores, and restores a youthful glow.
+              </p>
+            </div>
+          </div>
+
+          <!-- D-Tan Treatment -->
+          <div class="swiper-slide" data-category="facial">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/D-Tan Face & Full Body.jpg' %}">
+              {% comment %} <img src="images/D-Tan Face & Full Body.jpg" alt="D-Tan Treatment"> {% endcomment %}
+              <!-- <div class="service-icon">☀️</div> -->
+              <h5 class="service-title">D-Tan Face & Full Body</h5>
+              <p class="service-text">
+                A brightening treatment that removes sun tan and dullness, evening out skin tone and leaving skin soft and radiant.
+              </p>
+            </div>
+          </div>
+
+          <!-- Pedicure & Manicure -->
+          <div class="swiper-slide" data-category="care">
+            <div class="service-card">
+                <img src="{% static 'webiste/images/Pedicure & Manicure.jpg' %}">
+              {% comment %} <img src="images/Pedicure & Manicure.jpg" alt="Pedicure & Manicure"> {% endcomment %}
+              <!-- <div class="service-icon">💅</div> -->
+              <h5 class="service-title">Pedicure & Manicure - Hand & Foot Care</h5>
+              <p class="service-text">
+                Essential hand and foot care that cleans, shapes, and nourishes nails while softening and refreshing the skin.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Add navigation buttons -->
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-pagination"></div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- About Section -->
+<section id="about" class="about-section" data-aos="zoom-in" data-aos-delay="200">
+  <div class="container">
+    <div class="row align-items-center">
+      
+      <!-- Left Image -->
+      <div class="col-lg-6 about-img">
+        <img src="https://i.pinimg.com/736x/35/95/8e/35958e26c3b01a594a17979ec55771a4.jpg" alt="Spa and Massage Therapy in Vellore - Blue Lounge Spa">
+      </div>
+
+      <!-- Right Card -->
+      <div class="col-lg-6">
+        <div class="about-card">
+          <h5>About Us</h5>
+          <h2>Relax, Rejuvenate & Restore at Cura Therapy Centre</h2>
+          <p>
+            At <strong>Cura Therapy Centre Vellore</strong>, we create a sanctuary of peace where 
+            wellness meets luxury. Our expert therapists specialize in <em>traditional and modern therapies</em> 
+            designed to relieve stress, improve circulation, and restore balance to your body and mind.
+          </p>
+
+          <!-- Buttons -->
+          <div class="mb-3">
+            <button class="btn-custom btn-green">
+              <i class="fas fa-check-circle"></i> Foot Reflexology & Thai Massage
+            </button>
+            <button class="btn-custom btn-white">
+              <i class="fas fa-check-circle"></i> Facials, D-Tan & Skin Care
+            </button>
+          </div>
+
+          <p class="about-extra">
+            Whether you're looking for <strong>deep relaxation, glowing skin, or hand & foot care</strong>, 
+            we offer personalized treatments including <em>Swedish Oil Therapy, Hot Stone Therapy, Deep Tissue Massage, Aromatherapy, Cupping Therapy, Hydra Facial, Pedicure & Manicure</em> – 
+            all at affordable prices starting from <strong>₹499</strong>.
+          </p>
+          
+          <!-- Contact Info -->
+          <div class="about-contact mt-4">
+  <div class="contact-item">
+    <i class="fas fa-clock"></i>
+    <span><strong>Timing:</strong> 10 AM – 8 PM (Mon–Sun)</span>
+  </div>
+  
+  <div class="contact-item">
+    <i class="fas fa-phone-alt"></i>
+    <span><strong>Call:</strong> <a href="tel:+918610609373">+91 8610609373</a></span>
+  </div>
+  
+  <div class="contact-item">
+    <i class="fas fa-map-marker-alt"></i>
+    <span>
+      <strong>Location:</strong> CMC Eye Hospital Road, Dinakaran Stopping, 
+      Opp. New Fresh Market, Near Bajaj Showroom, First Floor Above MedPlus, Arni Road, Vellore
+    </span>
+  </div>
+  
+   <div class="contact-item">
+    <i class="fas fa-map"></i>
+    <a href="https://maps.app.goo.gl/oQBMuBddd6xnkQsL8" target="_blank" class="map-btn">
+      Open on Google Maps
+    </a>
+  </div>
+</div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+
+
+ <section id="pricing" class="pricing-section" data-aos="zoom-in" data-aos-delay="200">
+  <div class="container">
+    <div class="pricing-subtitle">10% to 30% OFF!</div>
+    <h2 class="pricing-title"> Our Packages</h2>
+
+    <div class="row">
+      <!-- Fixed title on the left -->
+      <div class="col-lg-3 d-none d-lg-block">
+        <div class="package-card h-100 d-flex flex-direction: column; justify-content: center;">
+          
+          <ul class="package-features">
+            <h3 class="package-title">✨ Available Treatments</h3>
+            <li><i class="fas fa-check"></i> Foot Reflexology</li>
+            <li><i class="fas fa-check"></i> Thai Massage</li>
+            <li><i class="fas fa-check"></i> Swedish Oil Massage</li>
+            <li><i class="fas fa-check"></i> Pedicure & Manicure</li>
+            <li><i class="fas fa-check"></i> Facial & D-Tan Treatments</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Slider on the right -->
+      <div class="col-lg-9">
+        <div class="swiper pricing-swiper">
+          <div class="swiper-wrapper">
+            <!-- Pricing Card 1 -->
+            <div class="swiper-slide">
+              <div class="package-card">
+                {% comment %} <img class="package-image" src="{% static 'webiste/images/Foot Reflexology.jpg' %}"> {% endcomment %}
+                <img src="https://i.pinimg.com/736x/81/41/91/8141918113fec3b1b5ac402c541423a7.jpg" alt="Foot Reflexology" class="package-image">
+                <div class="time-badge">From ₹499</div>
+                <h3 class="package-title">Foot Reflexology</h3>
+                <p class="text-center">Relax & Refresh</p>
+                <button class="btn btn-custom">BOOK NOW</button>
+              </div>
+            </div>
+            
+            <!-- Pricing Card 2 -->
+            <div class="swiper-slide">
+              <div class="package-card">
+                {% comment %} <img class="package-image" src="{% static 'webiste/images/Steam Therapy.jpg' %}"> {% endcomment %}
+                <img src="https://i.pinimg.com/1200x/fb/1a/a3/fb1aa3dae22f85f85f1261b2d8ad08de.jpg" alt="Body Massage" class="package-image">
+                <div class="time-badge">From ₹799</div>
+                <h3 class="package-title">Body Massage</h3>
+                <p class="text-center">Full Body Relaxation</p>
+                <button class="btn btn-custom">BOOK NOW</button>
+              </div>
+            </div>
+            
+            <!-- Pricing Card 3 -->
+            <div class="swiper-slide">
+              <div class="package-card">
+                {% comment %} <img class="package-image" src="{% static 'webiste/images/Pedicure & Manicure.jpg' %}"> {% endcomment %}
+                <img src="https://i.pinimg.com/736x/8a/29/c2/8a29c2f628b863a7c3ce2aa3a820b63b.jpg" alt="Pedicure" class="package-image">
+                <div class="time-badge">From ₹499</div>
+                <h3 class="package-title">Pedicure</h3>
+                <p class="text-center">Foot & Nail Care</p>
+                <button class="btn btn-custom">BOOK NOW</button>
+              </div>
+            </div>
+
+            
+
+            <div class="swiper-slide">
+              <div class="package-card">
+                {% comment %} <img src="{% static 'webiste/images/Facials.jpg' %}"> {% endcomment %}
+                <img src="https://i.pinimg.com/1200x/8c/9f/a7/8c9fa7dbc6e87d9a2d83c5bf0acf7874.jpg" alt="Pedicure" class="package-image">
+                <div class="time-badge">From ₹499</div>
+                <h3 class="package-title">Facial</h3>
+                <p class="text-center">Glow & Refresh</p>
+                <button class="btn btn-custom">BOOK NOW</button>
+              </div>
+            </div>
+            
+            <!-- Pricing Card 4 -->
+            
+          </div>
+          
+          <!-- Add navigation buttons -->
+          <div class="swiper-button-next"></div>
+          <div class="swiper-button-prev"></div>
+          <div class="swiper-pagination"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section id="testimonials" class="testimonial-section" data-aos="zoom-in" data-aos-delay="200">
+    <div class="container">
+      <h1>TESTIMONIALS</h1>
+      <h2>HEAR FROM OUR DELIGHTED CLIENTS</h2>
+
+      <div class="row justify-content-center">
+        
+        <!-- Card 1 -->
+        <div class="col-md-6 col-lg-3 mb-4">
+          <div class="testimonial-card">
+            <div class="testimonial-header">
+              <!-- <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Judy Nguyen"> -->
+              <h5>Agi Agilan</h5>
+            </div>
+            <p>"Had the foot reflexology session today — absolutely relaxing! My feet felt so light afterward, and I even slept better that night. Highly recommend."</p>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="col-md-6 col-lg-3 mb-4">
+          <div class="testimonial-card">
+            <div class="testimonial-header">
+              <!-- <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Amanda Reed"> -->
+              <h5>Subalakshmi Venkatesan</h5>
+            </div>
+            <p>It's my first time doing this therapy. Its was very relaxing to the mind and body. Also cost efficient. Staff's were very gentle in handling. Felt refreshing after the session."</p>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="col-md-6 col-lg-3 mb-4">
+          <div class="testimonial-card">
+            <div class="testimonial-header">
+              <!-- <img src="https://randomuser.me/api/portraits/men/70.jpg" alt="Bryan Knight"> -->
+              <h5>Kishore</h5>
+            </div>
+            <p>"Best place for relaxation in Vellore
+Got a 60-minute foot reflexology session — pure bliss! The staff is warm and well-trained. Highly recommend after a long work week."</p>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="col-md-6 col-lg-3 mb-4">
+          <div class="testimonial-card">
+            <div class="testimonial-header">
+              <!-- <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Louis Ferguson"> -->
+              <h5>Kaviya Jemima</h5>
+            </div>
+            <p>"Loved my time at Cura Therapy Centre– a perfect place with a luxurious experience. Exceptional service and luxurious facilities. It is one of the best spas for ultimate relaxation."</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+<div id="scrollCard">
+  <button class="close-btn">&times;</button>
+  <img src="{% static 'webiste/images/cura poster.jpg' %}">
+</div>
+
+
+
+
+  <!-- Scroll to Top Button -->
+<button id="scrollTopBtn" title="Go to top">
+  ↑
+</button>
+
+
+    <!-- ===== Footer Section ===== -->
+  <footer id="contact">
+    <div class="container">
+      <div class="row align-items-start">
+        
+        <!-- Left Section -->
+        <div class="col-lg-4 col-md-6 mb-4 footer-logo">
+          <img src="https://i.pinimg.com/1200x/0f/b6/12/0fb61230057c3538166ee19510761c45.jpg" alt="Blue Lounge Spa Logo" class="mb-3">
+          <p>Relax at Cura Therapy Centre – rejuvenating treatments, wellness, and tranquil escapes await you.</p>
+          <div class="availability">We Are Available:</div>
+          <p>Timing: 10 AM to 8 PM</p>
+          <div class="social-icons">
+            <a href="https://www.facebook.com/share/16vT2eH7RS/"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://www.instagram.com/cura_therapy_centre?igsh=ejJjMHE1YWo4MWI1"><i class="fab fa-instagram"></i></a>
+            <a href="https://youtube.com/@cura_therapy_centre?si=k_4FSVcUBgoPS-HU"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+
+        <!-- Middle Section -->
+        <div class="col-lg-4 col-md-6 mb-4">
+          <h5>Quick Links</h5>
+          <ul>
+            <li><a href="#home"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="#services"><i class="fas fa-hand-holding-heart"></i> Services</a></li>
+            <li><a href="#about"><i class="fas fa-user"></i> About</a></li>
+            <li><a href="#pricing"><i class="fas fa-tags"></i> Package</a></li>
+            <li><a href="#testimonials"><i class="fas fa-comment-dots"></i> Testimonials</a></li>
+          </ul>
+        </div>
+
+        <!-- Right Section -->
+        <div class="col-lg-4 col-md-12 mb-4">
+          <h5>Contact Us</h5>
+          <p><i class="fas fa-map-marker-alt me-2"></i>CMC Eye Hospital Road, Dinakaran Stopping,
+Opp. New Fresh Market, Near Bajaj Showroom,
+First Floor Above MedPlus, Arni Road, Vellore
+</p>
+          <p><i class="fas fa-phone-alt me-2"></i> +91 8610609373
+</p>
+          <p><i class="fas fa-envelope me-2"></i> curatherapycenter@gmail.com</p>
+          <div class="map mt-3">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15689.307919525394!2d79.13974177880896!3d12.923395601139726!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bad39e2049e1d65%3A0x872676fe24904d58!2sCura%20Therapy%20Centre!5e0!3m2!1sen!2sin!4v1705900000000!5m2!1sen!2sin" 
+              width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Copyright -->
+      
+    </div>
+  </footer>
+
+
+
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+  window.addEventListener("load", function () {
+    setTimeout(() => {
+      document.getElementById("loader").classList.add("fade-out");
+      setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
+      }, 800);
+    }, 2000); // 2 seconds for animation
+  });
+</script>
+
+<script>
+  // Initialize AOS animations
+  AOS.init({
+    duration: 1200,
+    once: true
+  });
+  
+  // Initialize Services Swiper
+  const servicesSwiper = new Swiper('.services-swiper', {
+    slidesPerView: 1,
+    spaceBetween: 20,
+    loop: true,
+    pagination: {
+      el: '.services-swiper .swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      nextEl: '.services-swiper .swiper-button-next',
+      prevEl: '.services-swiper .swiper-button-prev',
+    },
+    breakpoints: {
+      576: {
+        slidesPerView: 2,
+      },
+      992: {
+        slidesPerView: 3,
+      },
+    }
+  });
+  
+  // Initialize Pricing Swiper
+  const pricingSwiper = new Swiper('.pricing-swiper', {
+    slidesPerView: 1,
+    spaceBetween: 20,
+    loop: true,
+    pagination: {
+      el: '.pricing-swiper .swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      nextEl: '.pricing-swiper .swiper-button-next',
+      prevEl: '.pricing-swiper .swiper-button-prev',
+    },
+    breakpoints: {
+      576: {
+        slidesPerView: 2,
+      },
+      768: {
+        slidesPerView: 2,
+      },
+      1200: {
+        slidesPerView: 3,
+      },
+    }
+  });
+  
+  // Toggle mobile menu
+  document.querySelector(".menu-toggle").addEventListener("click", function() {
+    document.querySelector(".nav-links").classList.add("active");
+    document.querySelector(".menu-toggle").classList.add("hidden");
+    document.body.style.overflow = "hidden";
+  });
+
+  // Close mobile menu
+  document.querySelector(".close-menu").addEventListener("click", function() {
+    document.querySelector(".nav-links").classList.remove("active");
+    document.querySelector(".menu-toggle").classList.remove("hidden");
+    document.body.style.overflow = "auto";
+  });
+
+  // Close menu when clicking on a link
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', function() {
+      document.querySelector(".nav-links").classList.remove("active");
+      document.querySelector(".menu-toggle").classList.remove("hidden");
+      document.body.style.overflow = "auto";
+    });
+  });
+
+  // Change navbar background on scroll
+  window.addEventListener("scroll", function() {
+    const navbar = document.querySelector(".custom-navbar");
+    if (window.scrollY > 50) {
+      navbar.classList.add("scrolled");
+    } else {
+      navbar.classList.remove("scrolled");
+    }
+  });
+  
+ 
+
+  // Service category filtering
+  document.querySelectorAll('.category-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      // Remove active class from all buttons
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Add active class to clicked button
+      this.classList.add('active');
+      
+      const category = this.getAttribute('data-category');
+      const slides = document.querySelectorAll('.services-swiper .swiper-slide');
+      
+      if (category === 'all') {
+        slides.forEach(slide => {
+          slide.style.display = 'block';
+        });
+      } else {
+        slides.forEach(slide => {
+          if (slide.getAttribute('data-category') === category) {
+            slide.style.display = 'block';
+          } else {
+            slide.style.display = 'none';
+          }
+        });
+      }
+      
+      // Update swiper after filtering
+      setTimeout(() => {
+        servicesSwiper.update();
+      }, 100);
+    });
+  });
+</script>
+
+<script>
+  // Get the button
+  let mybutton = document.getElementById("scrollTopBtn");
+
+  // Show button after scrolling 200px
+  window.onscroll = function() {
+    if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+      mybutton.style.display = "block";
+    } else {
+      mybutton.style.display = "none";
+    }
+  };
+
+  // Scroll to top when clicked
+  mybutton.onclick = function() {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  };
+</script>
+
+
+<script>
+  const card = document.getElementById('scrollCard');
+  const closeBtn = card.querySelector('.close-btn');
+
+  // Show card once per session after scroll
+  if (!sessionStorage.getItem('cardShown')) {
+    let shown = false;
+    window.addEventListener('scroll', () => {
+      if (!shown && window.scrollY > 100) {
+        shown = true;
+        setTimeout(() => {
+          card.style.display = 'block';
+          sessionStorage.setItem('cardShown', 'true');
+        }, 1000); // 1 second delay
+      }
+    });
+  }
+
+  // Close button functionality
+  closeBtn.addEventListener('click', () => {
+    card.style.display = 'none';
+  });
+</script>
+
+
+</body>
+</html>
+
