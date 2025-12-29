@@ -30,6 +30,9 @@ urlpatterns = [
     
     path("get-customer-details/", views.get_customer_details, name="get_customer_details"),
     
-     path('invoice/<int:invoice_id>/download/', views.download_invoice_pdf, name='download_invoice_pdf'),
+    path('invoice/<int:invoice_id>/download/', views.download_invoice_pdf, name='download_invoice_pdf'),
+     
+     path('search-customers/', views.search_customers, name='search_customers'),
+     path('get-customer-details/', views.get_customer_details, name='get_customer_details'),
      
 ]

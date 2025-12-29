@@ -1,4 +1,5 @@
 {% extends "invoice/base/base.html" %}
+
 {% block content %}
 <div class="row">
   <div class="col-xl-12 col-lg-7">
@@ -10,63 +11,155 @@
       <div class="card-body">
         <form method="post" action="">
           {% csrf_token %}
+          
+          {% if error %}
+          <div class="alert alert-danger">{{ error }}</div>
+          {% endif %}
 
-          <!-- Customer selection -->
-          <div class="mb-3">
-            <label class="form-label">Customer Name</label>
-            <select id="customer_select" name="customer" class="form-control">
-              <option value="">-- Select Customer --</option>
-              {% for c in customers %}
-                <option value="{{ c.id }}">{{ c.customer_name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <!-- Auto-filled fields -->
-          <div class="mb-3">
-            <label class="form-label">Mobile</label>
-            <input id="customer_number" type="text" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input id="customer_email" type="email" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Status</label>
-            <input id="customer_status" type="text" class="form-control" readonly>
+          <!-- Customer Selection Tabs -->
+          <div class="mb-4">
+            <ul class="nav nav-tabs" id="customerTab" role="tablist">
+              <li class="nav-item">
+                <a class="nav-link active" id="existing-tab" data-toggle="tab" href="#existing">
+                  Select Existing Customer
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="new-tab" data-toggle="tab" href="#new">
+                  Create New Customer
+                </a>
+              </li>
+            </ul>
+            
+            <div class="tab-content" id="customerTabContent">
+              <!-- Existing Customer Tab -->
+              <div class="tab-pane fade show active" id="existing" role="tabpanel">
+                <div class="mb-3 mt-3">
+                  <label class="form-label">Select Customer</label>
+                  <select id="customer_select" name="customer" class="form-control"></select>
+                </div>
+                
+                <div class="row">
+                  <div class="col-md-4">
+                    <label class="form-label">Mobile</label>
+                    <input id="customer_number" type="text" class="form-control" readonly>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Email</label>
+                    <input id="customer_email" type="email" class="form-control" readonly>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Status</label>
+                    <input id="customer_status" type="text" class="form-control" readonly>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- New Customer Tab -->
+              <div class="tab-pane fade" id="new" role="tabpanel">
+                <div class="row mt-3">
+                  <div class="col-md-4">
+                    <label class="form-label">Customer Name *</label>
+                    <input type="text" name="new_customer_name" class="form-control" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Mobile Number *</label>
+                    <input type="text" name="new_customer_mobile" class="form-control" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="new_customer_email" class="form-control">
+                  </div>
+                </div>
+                <input type="hidden" name="customer" value="new">
+              </div>
+            </div>
           </div>
 
           <!-- Comments -->
           <div class="mb-3">
-            <label class="form-label">Comments</label>
-            <textarea name="comments" class="form-control"></textarea>
+            <label class="form-label">Comments (Optional)</label>
+            <textarea name="comments" class="form-control" rows="2"></textarea>
           </div>
 
-          <!-- Service selection with images -->
-          <div class="mb-3">
-            <label class="form-label">Select Services</label>
-            <div class="row">
-              {% for p in products %}
-              <div class="col-md-3 text-center mb-3">
-                {% if p.services_image %}
-                  <img src="{{ p.services_image.url }}" alt="{{ p.services_name }}" style="max-width:100%; height:150px; object-fit:cover;">
-                {% else %}
-                  <img src="/static/no-image.jpg" style="max-width:100%; height:150px;">
-                {% endif %}
-                <div>
-                  <strong>{{ p.services_name }}</strong><br>
-                  ₹{{ p.services_price }}
+          <!-- Services -->
+          <div class="mb-4">
+            <label class="form-label">Select Services *</label>
+            {% if products %}
+              <div class="row">
+                {% for p in products %}
+                <div class="col-md-3 col-sm-4 col-6 text-center mb-3">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      {% if p.services_image %}
+                        <img src="{{ p.services_image.url }}" alt="{{ p.services_name }}" 
+                             class="img-fluid mb-2" style="height: 120px; object-fit: cover; width: 100%;">
+                      {% else %}
+                        <img src="/static/no-image.jpg" 
+                             class="img-fluid mb-2" style="height: 120px; object-fit: cover; width: 100%;">
+                      {% endif %}
+                      <h6 class="card-title">{{ p.services_name }}</h6>
+                      <p class="card-text text-success">
+                        <strong>₹{{ p.services_price }}</strong>
+                      </p>
+                      <div class="form-check">
+                        <input type="checkbox" name="products" value="{{ p.id }}" 
+                               class="form-check-input product-checkbox" 
+                               id="product_{{ p.id }}">
+                        <label class="form-check-label" for="product_{{ p.id }}">Select</label>
+                      </div>
+                      <div class="mt-2">
+                        <input type="number" name="quantities" 
+                               data-product="{{ p.id }}" 
+                               min="1" value="1" 
+                               class="form-control text-center quantity-input" 
+                               style="width: 80px; margin: 0 auto;"
+                               disabled>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <input type="checkbox" name="products" value="{{ p.id }}"> Select
-                <input type="number" name="quantities" min="1" value="1" class="form-control mt-2" style="width:80px; margin:auto;">
+                {% endfor %}
               </div>
-              {% endfor %}
+            {% else %}
+              <div class="alert alert-info">No services available.</div>
+            {% endif %}
+          </div>
+
+          <!-- Order Summary -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <h6 class="mb-0">Order Summary</h6>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-8">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th>Service</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody id="summary-table">
+                      <tr><td colspan="4" class="text-center">No services selected</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="col-md-4 text-end">
+                  <h5>Total: ₹<span id="total-amount">0.00</span></h5>
+                  <small class="text-muted" id="total-words">Zero Rupees Only</small>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Submit button -->
+          <!-- Submit -->
           <div class="text-center">
-            <input type="submit" class="btn btn-success" value="Create Invoice">
+            <button type="submit" class="btn btn-success btn-lg px-5">Generate Invoice</button>
+            <a href="{% url 'view_invoice' %}" class="btn btn-secondary btn-lg px-5 ml-2">Cancel</a>
           </div>
         </form>
       </div>
@@ -76,22 +169,110 @@
 {% endblock %}
 
 {% block custom_js %}
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
-document.getElementById("customer_select").addEventListener("change", function () {
-  const customerId = this.value;
-  if (customerId) {
-    fetch(`/get-customer-details/?customer_id=${customerId}`)
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById("customer_number").value = data.contact;
-        document.getElementById("customer_email").value = data.email;
-        document.getElementById("customer_status").value = data.status;
-      });
-  } else {
-    document.getElementById("customer_number").value = "";
-    document.getElementById("customer_email").value = "";
-    document.getElementById("customer_status").value = "";
-  }
+$(document).ready(function() {
+    // Initialize Select2 with AJAX
+    $('#customer_select').select2({
+        placeholder: '-- Select Customer --',
+        ajax: {
+            url: '/search-customers/',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) { return { q: params.term }; },
+            processResults: function(data) {
+                return {
+                    results: data.results.map(c => ({
+                        id: c.id,
+                        text: c.customer_name + ' - ' + c.customer_number
+                    }))
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 1
+    });
+
+    // Auto-fill details
+    $('#customer_select').on('select2:select', function(e) {
+        const customerId = e.params.data.id;
+        if (customerId) {
+            fetch(`/get-customer-details/?customer_id=${customerId}`)
+                .then(res => res.json())
+                .then(data => {
+                    $('#customer_number').val(data.contact);
+                    $('#customer_email').val(data.email);
+                    $('#customer_status').val(data.status);
+                });
+        } else {
+            $('#customer_number').val('');
+            $('#customer_email').val('');
+            $('#customer_status').val('');
+        }
+    });
+
+    // Switch tabs when new customer selected
+    $('#customer_select').change(function() {
+        if ($(this).val() === 'new') {
+            $('#new-tab').tab('show');
+        }
+    });
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+        if (e.target.id === 'new-tab') {
+            $('#customer_select').val('new').trigger('change');
+        } else {
+            $('input[name="customer"]').val('');
+        }
+    });
+
+    // Product and quantity logic
+    $('.product-checkbox').change(function() {
+        const id = $(this).val();
+        const qty = $(`.quantity-input[data-product="${id}"]`);
+        if ($(this).is(':checked')) qty.prop('disabled', false).val(1);
+        else qty.prop('disabled', true).val(1);
+        updateSummary();
+    });
+
+    $('.quantity-input').on('input', updateSummary);
+
+    function updateSummary() {
+        let total = 0, html='';
+        $('.product-checkbox:checked').each(function() {
+            const id = $(this).val();
+            const card = $(this).closest('.card-body');
+            const name = card.find('.card-title').text().trim();
+            const price = parseFloat(card.find('.card-text strong').text().replace('₹',''));
+            const qty = parseFloat($(`.quantity-input[data-product="${id}"]`).val()) || 1;
+            const subtotal = price * qty;
+            total += subtotal;
+            html += `<tr><td>${name}</td><td>${qty}</td><td>₹${price.toFixed(2)}</td><td>₹${subtotal.toFixed(2)}</td></tr>`;
+        });
+        $('#summary-table').html(html || '<tr><td colspan="4" class="text-center">No services selected</td></tr>');
+        $('#total-amount').text(total.toFixed(2));
+        $('#total-words').text(numberToWords(total) + ' Only');
+    }
+
+    function numberToWords(num){
+        if(num==0) return 'Zero Rupees';
+        const units=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine'];
+        const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+        const teens=['Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+        function convert(n){
+            if(n<10) return units[n];
+            if(n<20) return teens[n-10];
+            if(n<100) return tens[Math.floor(n/10)] + (n%10?' '+units[n%10]:'');
+            if(n<1000) return units[Math.floor(n/100)]+' Hundred'+(n%100?' and '+convert(n%100):'');
+            return n;
+        }
+        return convert(Math.floor(num))+' Rupees';
+    }
+
+    updateSummary();
 });
 </script>
 {% endblock %}
