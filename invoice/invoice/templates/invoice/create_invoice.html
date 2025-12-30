@@ -1,135 +1,253 @@
 {% extends "invoice/base/base.html" %}
-
+{% load static %}
 {% block content %}
 <div class="row">
   <div class="col-xl-12 col-lg-7">
     <div class="card shadow mb-4">
-      <div class="card-header py-3">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <label class="m-0 font-weight-bold text-primary">Create Invoice</label>
+        <span class="badge badge-primary">Products: {{ total_product }} | Invoices: {{ total_invoice }}</span>
       </div>
 
       <div class="card-body">
-        <form method="post" action="">
+        <form method="post" action="{% url 'create_invoice' %}">
           {% csrf_token %}
           
-          {% if error %}
-          <div class="alert alert-danger">{{ error }}</div>
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert">
+                  <span>&times;</span>
+                </button>
+              </div>
+            {% endfor %}
           {% endif %}
 
-          <!-- Customer Selection Tabs -->
+          <!-- Customer Selection -->
           <div class="mb-4">
-            <ul class="nav nav-tabs" id="customerTab" role="tablist">
-              <li class="nav-item">
-                <a class="nav-link active" id="existing-tab" data-toggle="tab" href="#existing">
-                  Select Existing Customer
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" id="new-tab" data-toggle="tab" href="#new">
-                  Create New Customer
-                </a>
-              </li>
-            </ul>
-            
-            <div class="tab-content" id="customerTabContent">
-              <!-- Existing Customer Tab -->
-              <div class="tab-pane fade show active" id="existing" role="tabpanel">
-                <div class="mb-3 mt-3">
-                  <label class="form-label">Select Customer</label>
-                  <select id="customer_select" name="customer" class="form-control"></select>
-                </div>
-                
-                <div class="row">
-                  <div class="col-md-4">
-                    <label class="form-label">Mobile</label>
-                    <input id="customer_number" type="text" class="form-control" readonly>
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label">Email</label>
-                    <input id="customer_email" type="email" class="form-control" readonly>
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label">Status</label>
-                    <input id="customer_status" type="text" class="form-control" readonly>
-                  </div>
-                </div>
+            <div class="card">
+              <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="fas fa-user mr-2"></i>Customer Information *</h6>
               </div>
-              
-              <!-- New Customer Tab -->
-              <div class="tab-pane fade" id="new" role="tabpanel">
-                <div class="row mt-3">
-                  <div class="col-md-4">
-                    <label class="form-label">Customer Name *</label>
-                    <input type="text" name="new_customer_name" class="form-control" required>
+              <div class="card-body">
+                <!-- Tabs -->
+                <ul class="nav nav-tabs mb-3" id="customerTab" role="tablist">
+                  <li class="nav-item">
+                    <a class="nav-link active" id="existing-tab" data-toggle="tab" href="#existing">
+                      <i class="fas fa-search mr-2"></i>Search Existing Customer
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="new-tab" data-toggle="tab" href="#new">
+                      <i class="fas fa-user-plus mr-2"></i>Create New Customer
+                    </a>
+                  </li>
+                </ul>
+                
+                <div class="tab-content" id="customerTabContent">
+                  <!-- Existing Customer Tab -->
+                  <div class="tab-pane fade show active" id="existing" role="tabpanel">
+                    <div class="form-group">
+                      <label class="font-weight-bold">Search & Select Customer *</label>
+                      <select id="customer_select" class="form-control select2-customers">
+                        <option value=""></option>
+                        <!-- Initial options -->
+                        {% for customer in customers %}
+                        <option value="{{ customer.id }}" 
+                                data-name="{{ customer.customer_name }}"
+                                data-number="{{ customer.customer_number }}"
+                                data-email="{{ customer.customer_email|default:'' }}"
+                                data-gender="{{ customer.customer_gender|default:'Male' }}"
+                                data-dob="{{ customer.customer_dob|date:'Y-m-d'|default:'' }}"
+                                data-status="{{ customer.customer_status|default:'Normal' }}">
+                          {{ customer.customer_name }} - {{ customer.customer_number }}
+                          {% if customer.customer_email %} - {{ customer.customer_email }}{% endif %}
+                        </option>
+                        {% endfor %}
+                      </select>
+                      <small class="form-text text-muted">
+                        <i class="fas fa-info-circle"></i> Type name, mobile number, or email to search
+                      </small>
+                      <!-- Hidden input for existing customer ID -->
+                      <input type="hidden" id="selected_customer_id" name="selected_customer_id">
+                      <!-- Error container for existing customer -->
+                      <div id="existing-customer-error" class="invalid-feedback" style="display: none;">
+                        Please select a customer from the dropdown
+                      </div>
+                    </div>
+                    
+                    <!-- Customer Details Card -->
+                    <div class="card mt-3" id="customerDetailsCard" style="display: none;">
+                      <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="fas fa-user-circle mr-2"></i>Selected Customer Details</h6>
+                      </div>
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label class="text-muted">Full Name</label>
+                              <input id="customer_name_display" type="text" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                              <label class="text-muted">Mobile Number</label>
+                              <input id="customer_number" type="text" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                              <label class="text-muted">Email</label>
+                              <input id="customer_email" type="email" class="form-control" readonly>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label class="text-muted">Gender</label>
+                              <input id="customer_gender" type="text" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                              <label class="text-muted">Date of Birth</label>
+                              <input id="customer_dob" type="text" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                              <label class="text-muted">Status</label>
+                              <input id="customer_status" type="text" class="form-control" readonly>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="col-md-4">
-                    <label class="form-label">Mobile Number *</label>
-                    <input type="text" name="new_customer_mobile" class="form-control" required>
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label">Email</label>
-                    <input type="email" name="new_customer_email" class="form-control">
+                  
+                  <!-- New Customer Tab -->
+                  <div class="tab-pane fade" id="new" role="tabpanel">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label class="font-weight-bold">Full Name *</label>
+                          <input type="text" name="new_customer_name" class="form-control" 
+                                 value="{{ request.POST.new_customer_name|default:'' }}" >
+                          <div class="invalid-feedback">Please enter customer name</div>
+                        </div>
+                        <div class="form-group">
+                          <label class="font-weight-bold">Gender *</label>
+                          <select name="new_customer_gender" class="form-control" required>
+                            <option value="Male" {% if request.POST.new_customer_gender == 'Male' or not request.POST.new_customer_gender %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if request.POST.new_customer_gender == 'Female' %}selected{% endif %}>Female</option>
+                            <option value="Others" {% if request.POST.new_customer_gender == 'Others' %}selected{% endif %}>Others</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label class="font-weight-bold">Date of Birth *</label>
+                          <input type="date" name="new_customer_dob" class="form-control" 
+                                 value="{{ request.POST.new_customer_dob|default:'' }}" required>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label class="font-weight-bold">Mobile Number *</label>
+                          <input type="text" name="new_customer_mobile" class="form-control" 
+                                 value="{{ request.POST.new_customer_mobile|default:'' }}"
+                                 pattern="[0-9]{10}" title="10 digit mobile number" >
+                          <div class="invalid-feedback">Please enter a valid 10-digit mobile number</div>
+                        </div>
+                        <div class="form-group">
+                          <label class="font-weight-bold">Email (Optional)</label>
+                          <input type="email" name="new_customer_email" class="form-control"
+                                 value="{{ request.POST.new_customer_email|default:'' }}">
+                        </div>
+                        <div class="form-group">
+                          <label class="font-weight-bold">Customer Status *</label>
+                          <select name="new_customer_status" class="form-control" required>
+                            <option value="Normal" {% if request.POST.new_customer_status == 'Normal' or not request.POST.new_customer_status %}selected{% endif %}>Normal</option>
+                            <option value="Membership" {% if request.POST.new_customer_status == 'Membership' %}selected{% endif %}>Membership</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Error container for new customer -->
+                    <div id="new-customer-error" class="alert alert-danger" style="display: none;">
+                      Please fill all required fields for new customer
+                    </div>
                   </div>
                 </div>
-                <input type="hidden" name="customer" value="new">
               </div>
             </div>
           </div>
 
           <!-- Comments -->
-          <div class="mb-3">
-            <label class="form-label">Comments (Optional)</label>
-            <textarea name="comments" class="form-control" rows="2"></textarea>
+          <div class="mb-4">
+            <div class="card">
+              <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-comment mr-2"></i>Comments (Optional)</h6>
+              </div>
+              <div class="card-body">
+                <textarea name="comments" class="form-control" rows="2" 
+                          placeholder="Any special instructions or notes...">{{ request.POST.comments|default:'' }}</textarea>
+              </div>
+            </div>
           </div>
 
-          <!-- Services -->
+          <!-- Service Selection -->
           <div class="mb-4">
-            <label class="form-label">Select Services *</label>
-            {% if products %}
-              <div class="row">
-                {% for p in products %}
-                <div class="col-md-3 col-sm-4 col-6 text-center mb-3">
-                  <div class="card h-100">
-                    <div class="card-body">
-                      {% if p.services_image %}
-                        <img src="{{ p.services_image.url }}" alt="{{ p.services_name }}" 
-                             class="img-fluid mb-2" style="height: 120px; object-fit: cover; width: 100%;">
-                      {% else %}
-                        <img src="/static/no-image.jpg" 
-                             class="img-fluid mb-2" style="height: 120px; object-fit: cover; width: 100%;">
-                      {% endif %}
-                      <h6 class="card-title">{{ p.services_name }}</h6>
-                      <p class="card-text text-success">
-                        <strong>₹{{ p.services_price }}</strong>
-                      </p>
-                      <div class="form-check">
-                        <input type="checkbox" name="products" value="{{ p.id }}" 
-                               class="form-check-input product-checkbox" 
-                               id="product_{{ p.id }}">
-                        <label class="form-check-label" for="product_{{ p.id }}">Select</label>
-                      </div>
-                      <div class="mt-2">
-                        <input type="number" name="quantities" 
-                               data-product="{{ p.id }}" 
-                               min="1" value="1" 
-                               class="form-control text-center quantity-input" 
-                               style="width: 80px; margin: 0 auto;"
-                               disabled>
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-spa mr-2"></i>Select Services *</h6>
+                <span class="badge badge-info">Total: {{ products|length }} services</span>
+              </div>
+              <div class="card-body">
+                {% if products %}
+                  <div class="row">
+                    {% for p in products %}
+                    <div class="col-md-3 col-sm-4 col-6 text-center mb-3">
+                      <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                          {% if p.services_image %}
+                            <img src="{{ p.services_image.url }}" alt="{{ p.services_name }}" 
+                                 class="img-fluid mb-2" style="height: 120px; object-fit: cover; width: 100%;">
+                          {% else %}
+                            <img src="{% static 'no-image.jpg' %}" 
+                                 class="img-fluid mb-2" style="height: 120px; object-fit: cover; width: 100%;">
+                          {% endif %}
+                          <h6 class="card-title">{{ p.services_name }}</h6>
+                          <p class="card-text text-success">
+                            <strong>₹{{ p.services_price }}</strong>
+                          </p>
+                          <div class="form-check">
+                            <input type="checkbox" name="products" value="{{ p.id }}" 
+                                   class="form-check-input product-checkbox" 
+                                   id="product_{{ p.id }}"
+                                   {% if p.id|stringformat:"s" in request.POST.products %}checked{% endif %}>
+                            <label class="form-check-label" for="product_{{ p.id }}">Select</label>
+                          </div>
+                          <div class="mt-2">
+                            <input type="number" name="quantity_{{ p.id }}" 
+                                   data-product="{{ p.id }}" 
+                                   min="1" value="{% if request.POST.quantity %}{{ request.POST.quantity }}{% else %}1{% endif %}" 
+                                   class="form-control text-center quantity-input" 
+                                   style="width: 80px; margin: 0 auto;"
+                                   disabled>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    {% endfor %}
                   </div>
-                </div>
-                {% endfor %}
+                  <!-- Error container for services -->
+                  <div id="services-error" class="alert alert-danger mt-3" style="display: none;">
+                    Please select at least one service
+                  </div>
+                {% else %}
+                  <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>No services available.
+                  </div>
+                {% endif %}
               </div>
-            {% else %}
-              <div class="alert alert-info">No services available.</div>
-            {% endif %}
+            </div>
           </div>
 
           <!-- Order Summary -->
-          <div class="card mb-3">
+          <div class="card mb-4">
             <div class="card-header">
-              <h6 class="mb-0">Order Summary</h6>
+              <h6 class="mb-0"><i class="fas fa-receipt mr-2"></i>Order Summary</h6>
             </div>
             <div class="card-body">
               <div class="row">
@@ -148,18 +266,24 @@
                     </tbody>
                   </table>
                 </div>
-                <div class="col-md-4 text-end">
-                  <h5>Total: ₹<span id="total-amount">0.00</span></h5>
-                  <small class="text-muted" id="total-words">Zero Rupees Only</small>
+                <div class="col-md-4">
+                  <div class="text-end">
+                    <h5>Total: ₹<span id="total-amount">0.00</span></h5>
+                    <small class="text-muted" id="total-words">Zero Rupees Only</small>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Submit -->
+          <!-- Submit Button -->
           <div class="text-center">
-            <button type="submit" class="btn btn-success btn-lg px-5">Generate Invoice</button>
-            <a href="{% url 'view_invoice' %}" class="btn btn-secondary btn-lg px-5 ml-2">Cancel</a>
+            <button type="submit" class="btn btn-success btn-lg px-5">
+              <i class="fas fa-file-invoice-dollar mr-2"></i>Generate Invoice
+            </button>
+            <a href="{% url 'view_invoice' %}" class="btn btn-secondary btn-lg px-5 ml-2">
+              <i class="fas fa-times mr-2"></i>Cancel
+            </a>
           </div>
         </form>
       </div>
@@ -175,104 +299,392 @@
 
 <script>
 $(document).ready(function() {
-    // Initialize Select2 with AJAX
-    $('#customer_select').select2({
-        placeholder: '-- Select Customer --',
-        ajax: {
-            url: '/search-customers/',
-            dataType: 'json',
-            delay: 250,
-            data: function(params) { return { q: params.term }; },
-            processResults: function(data) {
-                return {
-                    results: data.results.map(c => ({
-                        id: c.id,
-                        text: c.customer_name + ' - ' + c.customer_number
-                    }))
-                };
-            },
-            cache: true
+    // Set default date for new customer DOB (18 years ago)
+    const today = new Date();
+    const eighteenYearsAgo = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    const formattedDate = eighteenYearsAgo.toISOString().split('T')[0];
+    $('input[name="new_customer_dob"]').val(formattedDate);
+
+    // Initialize Select2 for customer search
+    $('.select2-customers').select2({
+        placeholder: 'Type name, mobile, or email to search...',
+        allowClear: true,
+        width: '100%',
+        minimumInputLength: 2,
+        templateResult: function(customer) {
+            if (!customer.id) return customer.text;
+            
+            // For AJAX results
+            if (customer.customer) {
+                var $container = $(
+                    '<div class="customer-option">' +
+                        '<div class="font-weight-bold">' + customer.customer.name + '</div>' +
+                        '<div class="small text-muted">' +
+                            '<i class="fas fa-phone mr-1"></i>' + customer.customer.number +
+                            (customer.customer.email ? '<br><i class="fas fa-envelope mr-1"></i>' + customer.customer.email : '') +
+                            '<br><i class="fas fa-venus-mars mr-1"></i>' + customer.customer.gender +
+                            ' | <i class="fas fa-tag mr-1"></i>' + customer.customer.status +
+                        '</div>' +
+                    '</div>'
+                );
+                return $container;
+            }
+            
+            // For static options
+            return customer.text;
         },
-        minimumInputLength: 1
+        templateSelection: function(customer) {
+            if (!customer.id) return customer.text;
+            
+            // For AJAX results
+            if (customer.customer) {
+                return customer.customer.name + ' - ' + customer.customer.number;
+            }
+            
+            // For static options
+            return customer.text;
+        }
     });
-
-    // Auto-fill details
-    $('#customer_select').on('select2:select', function(e) {
-        const customerId = e.params.data.id;
+    
+    // Handle customer selection from dropdown
+    $('#customer_select').on('change', function() {
+        const selectedOption = $(this).find('option:selected');
+        const customerId = selectedOption.val();
+        
         if (customerId) {
-            fetch(`/get-customer-details/?customer_id=${customerId}`)
-                .then(res => res.json())
-                .then(data => {
-                    $('#customer_number').val(data.contact);
-                    $('#customer_email').val(data.email);
-                    $('#customer_status').val(data.status);
-                });
+            // Fill customer details from data attributes
+            $('#customer_name_display').val(selectedOption.data('name') || '');
+            $('#customer_number').val(selectedOption.data('number') || '');
+            $('#customer_email').val(selectedOption.data('email') || '');
+            $('#customer_gender').val(selectedOption.data('gender') || '');
+            $('#customer_dob').val(selectedOption.data('dob') || '');
+            $('#customer_status').val(selectedOption.data('status') || '');
+            $('#selected_customer_id').val(customerId);
+            $('#customerDetailsCard').slideDown();
+            
+            // Clear any existing error
+            $('#existing-customer-error').hide();
+            $('#customer_select').removeClass('is-invalid');
         } else {
-            $('#customer_number').val('');
-            $('#customer_email').val('');
-            $('#customer_status').val('');
+            clearCustomerDetails();
+            $('#customerDetailsCard').slideUp();
         }
     });
-
-    // Switch tabs when new customer selected
-    $('#customer_select').change(function() {
-        if ($(this).val() === 'new') {
-            $('#new-tab').tab('show');
-        }
-    });
-
+    
+    function clearCustomerDetails() {
+        $('#customer_name_display').val('');
+        $('#customer_number').val('');
+        $('#customer_email').val('');
+        $('#customer_gender').val('');
+        $('#customer_dob').val('');
+        $('#customer_status').val('');
+        $('#selected_customer_id').val('');
+    }
+    
+    // Tab switching logic
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-        if (e.target.id === 'new-tab') {
-            $('#customer_select').val('new').trigger('change');
-        } else {
-            $('input[name="customer"]').val('');
+        const targetTab = $(e.target).attr('href'); // #existing or #new
+        
+        if (targetTab === '#new') {
+            // Switching to new customer tab
+            $('.select2-customers').val(null).trigger('change');
+            $('#customerDetailsCard').slideUp();
+            
+            // Set default values for new customer
+            $('input[name="new_customer_gender"]').val('Male');
+            $('input[name="new_customer_status"]').val('Normal');
+            $('input[name="new_customer_dob"]').val(formattedDate);
+        } else if (targetTab === '#existing') {
+            // Switching to existing customer tab
+            // Clear new customer form
+            $('input[name="new_customer_name"]').val('');
+            $('input[name="new_customer_mobile"]').val('');
+            $('input[name="new_customer_email"]').val('');
+            $('select[name="new_customer_gender"]').val('Male');
+            $('select[name="new_customer_status"]').val('Normal');
+            $('input[name="new_customer_dob"]').val(formattedDate);
         }
+        
+        // Clear all errors
+        $('.alert-danger').hide();
+        $('.is-invalid').removeClass('is-invalid');
     });
-
-    // Product and quantity logic
+    
+    // Product selection logic
     $('.product-checkbox').change(function() {
         const id = $(this).val();
-        const qty = $(`.quantity-input[data-product="${id}"]`);
-        if ($(this).is(':checked')) qty.prop('disabled', false).val(1);
-        else qty.prop('disabled', true).val(1);
+        const qtyInput = $(`.quantity-input[data-product="${id}"]`);
+        
+        if ($(this).is(':checked')) {
+            qtyInput.prop('disabled', false).val(1);
+            $(this).closest('.card').addClass('border-success');
+        } else {
+            qtyInput.prop('disabled', true).val(1);
+            $(this).closest('.card').removeClass('border-success');
+        }
         updateSummary();
     });
-
-    $('.quantity-input').on('input', updateSummary);
-
+    
+    $('.quantity-input').on('input', function() {
+        const val = parseInt($(this).val());
+        if (val < 1 || isNaN(val)) {
+            $(this).val(1);
+        }
+        updateSummary();
+    });
+    
+    // Update order summary
     function updateSummary() {
-        let total = 0, html='';
+        let total = 0;
+        let html = '';
+        let itemCount = 0;
+        
         $('.product-checkbox:checked').each(function() {
             const id = $(this).val();
             const card = $(this).closest('.card-body');
             const name = card.find('.card-title').text().trim();
-            const price = parseFloat(card.find('.card-text strong').text().replace('₹',''));
-            const qty = parseFloat($(`.quantity-input[data-product="${id}"]`).val()) || 1;
+            const priceText = card.find('.card-text strong').text().replace('₹','').trim();
+            const price = parseFloat(priceText) || 0;
+            const qty = parseInt($(`.quantity-input[data-product="${id}"]`).val()) || 1;
             const subtotal = price * qty;
             total += subtotal;
-            html += `<tr><td>${name}</td><td>${qty}</td><td>₹${price.toFixed(2)}</td><td>₹${subtotal.toFixed(2)}</td></tr>`;
+            itemCount++;
+            
+            html += `
+                <tr>
+                    <td>${name}</td>
+                    <td>${qty}</td>
+                    <td>₹${price.toFixed(2)}</td>
+                    <td>₹${subtotal.toFixed(2)}</td>
+                </tr>
+            `;
         });
-        $('#summary-table').html(html || '<tr><td colspan="4" class="text-center">No services selected</td></tr>');
+        
+        if (itemCount === 0) {
+            html = '<tr><td colspan="4" class="text-center">No services selected</td></tr>';
+        }
+        
+        $('#summary-table').html(html);
         $('#total-amount').text(total.toFixed(2));
         $('#total-words').text(numberToWords(total) + ' Only');
     }
-
-    function numberToWords(num){
-        if(num==0) return 'Zero Rupees';
-        const units=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine'];
-        const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
-        const teens=['Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
-        function convert(n){
-            if(n<10) return units[n];
-            if(n<20) return teens[n-10];
-            if(n<100) return tens[Math.floor(n/10)] + (n%10?' '+units[n%10]:'');
-            if(n<1000) return units[Math.floor(n/100)]+' Hundred'+(n%100?' and '+convert(n%100):'');
-            return n;
+    
+    // Number to words function
+    function numberToWords(num) {
+        if (num === 0) return 'Zero';
+        
+        const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+        const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+        
+        function convert(n) {
+            if (n < 10) return units[n];
+            if (n < 20) return teens[n - 10];
+            if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + units[n % 10] : '');
+            if (n < 1000) return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' and ' + convert(n % 100) : '');
+            
+            const thousands = Math.floor(n / 1000);
+            const remainder = n % 1000;
+            let result = convert(thousands) + ' Thousand';
+            if (remainder > 0) {
+                result += ' ' + convert(remainder);
+            }
+            return result;
         }
-        return convert(Math.floor(num))+' Rupees';
+        
+        const rupees = Math.floor(num);
+        const paise = Math.round((num - rupees) * 100);
+        
+        let result = convert(rupees) + ' Rupees';
+        if (paise > 0) {
+            result += ' and ' + convert(paise) + ' Paise';
+        }
+        
+        return result;
     }
-
+    
+    // Form validation on submit
+    $('form').submit(function(e) {
+        e.preventDefault();
+        
+        let isValid = true;
+        let errorMessage = '';
+        
+        // Clear previous errors
+        $('.alert-danger').hide();
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').hide();
+        
+        // Check which tab is active
+        const activeTab = $('#customerTabContent .tab-pane.active').attr('id');
+        
+        // Validate customer based on active tab
+        if (activeTab === 'existing') {
+            const customerId = $('#selected_customer_id').val();
+            if (!customerId) {
+                isValid = false;
+                $('#existing-customer-error').show();
+                $('#customer_select').addClass('is-invalid');
+                errorMessage = 'Please select a customer from the dropdown.';
+            }
+        } else if (activeTab === 'new') {
+            const name = $('input[name="new_customer_name"]').val().trim();
+            const mobile = $('input[name="new_customer_mobile"]').val().trim();
+            const gender = $('select[name="new_customer_gender"]').val();
+            const dob = $('input[name="new_customer_dob"]').val();
+            
+            if (!name) {
+                isValid = false;
+                $('input[name="new_customer_name"]').addClass('is-invalid');
+                errorMessage = 'Customer name is required.';
+            } else if (!mobile) {
+                isValid = false;
+                $('input[name="new_customer_mobile"]').addClass('is-invalid');
+                errorMessage = 'Mobile number is required.';
+            } else if (!/^[0-9]{10}$/.test(mobile)) {
+                isValid = false;
+                $('input[name="new_customer_mobile"]').addClass('is-invalid');
+                errorMessage = 'Please enter a valid 10-digit mobile number.';
+            } else if (!gender) {
+                isValid = false;
+                $('select[name="new_customer_gender"]').addClass('is-invalid');
+                errorMessage = 'Gender is required.';
+            } else if (!dob) {
+                isValid = false;
+                $('input[name="new_customer_dob"]').addClass('is-invalid');
+                errorMessage = 'Date of birth is required.';
+            }
+            
+            if (!isValid) {
+                $('#new-customer-error').text(errorMessage).show();
+            }
+        }
+        
+        // Validate services
+        const selectedProducts = $('.product-checkbox:checked').length;
+        if (selectedProducts === 0) {
+            isValid = false;
+            $('#services-error').show();
+            errorMessage = errorMessage || 'Please select at least one service.';
+        }
+        
+        if (!isValid) {
+            // Show error message
+            if (!errorMessage) {
+                errorMessage = 'Please fix the errors above.';
+            }
+            
+            // Create a temporary alert
+            const alertHtml = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ${errorMessage}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            `;
+            
+            // Remove any existing alert and add new one
+            $('.alert').not('.alert-warning').remove();
+            $(alertHtml).insertAfter('.card-header');
+            
+            // Scroll to top
+            $('html, body').animate({ scrollTop: 0 }, 500);
+            return false;
+        }
+        
+        // If all validations pass, submit the form
+        this.submit();
+    });
+    
+    // Auto-check products that were previously selected on page reload
+    $('.product-checkbox').each(function() {
+        if ($(this).is(':checked')) {
+            const id = $(this).val();
+            $(`.quantity-input[data-product="${id}"]`).prop('disabled', false);
+            $(this).closest('.card').addClass('border-success');
+        }
+    });
+    
+    // Initialize summary
     updateSummary();
+    
+    // If there are POST data errors, switch to appropriate tab
+    {% if request.method == 'POST' %}
+        {% if request.POST.selected_customer_id %}
+            // Switch to existing customer tab if customer ID was submitted
+            $('#existing-tab').tab('show');
+            // Try to select the customer
+            $('#customer_select').val('{{ request.POST.selected_customer_id }}').trigger('change');
+        {% elif request.POST.new_customer_name %}
+            // Switch to new customer tab if new customer data was submitted
+            $('#new-tab').tab('show');
+        {% endif %}
+    {% endif %}
 });
 </script>
+
+<style>
+.select2-container--default .select2-selection--single {
+    border: 2px solid #ced4da;
+    border-radius: 0.375rem;
+    height: calc(2.5rem + 4px);
+    padding: 0.5rem;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: calc(2.5rem + 4px);
+}
+
+.select2-container--default .select2-selection--single.is-invalid {
+    border-color: #dc3545;
+}
+
+.customer-option {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.customer-option:last-child {
+    border-bottom: none;
+}
+
+.customer-option:hover {
+    background-color: #f8f9fa;
+}
+
+.card.border-success {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+}
+
+.nav-tabs .nav-link {
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.nav-tabs .nav-link:hover:not(.active) {
+    background-color: #f8f9fa;
+}
+
+#customerDetailsCard {
+    animation: fadeIn 0.3s ease;
+    border-left: 4px solid #007bff;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.quantity-input:disabled {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+</style>
 {% endblock %}

@@ -411,7 +411,7 @@ from reportlab.lib import colors
 from num2words import num2words
 
 @admin_required
-def create_invoice(request):
+def pdf_create_invoice(request):
     total_product = Product.objects.count()
     total_invoice = Invoice.objects.count()
     products = Product.objects.all()
@@ -681,221 +681,328 @@ def create_invoice(request):
     }
     return render(request, "invoice/create_invoice.html", context)
 
+
+
+from django.http import JsonResponse
+from django.db.models import Q
+from datetime import datetime, date
+import io
+from django.http import FileResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from num2words import num2words
+from io import BytesIO
+
 @admin_required
-def reate_invoice(request):
-    total_product = Product.objects.count()
-    total_invoice = Invoice.objects.count()
-    products = Product.objects.all()
-    customers = Customer.objects.all()
+def search_customers_ajax(request):
+    query = request.GET.get('q', '').strip()
 
-    if request.method == "POST":
-        # ------------------------------
-        # 1️⃣ Fetch Form Data
-        # ------------------------------
-        customer_id = request.POST.get("customer")
+    if not query:
+        return JsonResponse({"results": []})
+
+    customers = Customer.objects.filter(
+        Q(customer_name__icontains=query) |
+        Q(customer_number__icontains=query) |
+        Q(customer_email__icontains=query)
+    )[:50]
+
+    results = []
+    for c in customers:
+        results.append({
+            "id": c.id,
+            "name": c.customer_name,
+            "number": c.customer_number,
+            "email": c.customer_email or "",
+            "gender": c.customer_gender,
+            "dob": c.customer_dob.strftime('%Y-%m-%d') if c.customer_dob else "",
+            "status": c.customer_status
+        })
+
+    return JsonResponse({"results": results})
+
+@admin_required
+def get_customer_details_ajax(request):
+    """Get customer details by ID"""
+    customer_id = request.GET.get('customer_id')
+    try:
         customer = Customer.objects.get(id=customer_id)
-        selected_products = request.POST.getlist("products")
-        quantities = request.POST.getlist("quantities")
+        return JsonResponse({
+            "success": True,
+            "customer_name": customer.customer_name,
+            "customer_number": customer.customer_number,
+            "customer_email": customer.customer_email or '',
+            "customer_gender": customer.customer_gender,
+            "customer_dob": customer.customer_dob.strftime('%Y-%m-%d') if customer.customer_dob else '',
+            "customer_status": customer.customer_status
+        })
+    except Customer.DoesNotExist:
+        return JsonResponse({"success": False, "message": "Customer not found"})
 
-        if not selected_products or not quantities:
-            return render(request, "invoice/create_invoice.html", {
-                "error": "Please select at least one product.",
-                "products": products,
-                "customers": customers,
-            })
 
-        # ------------------------------
-        # 2️⃣ Create Invoice Entry
-        # ------------------------------
-        invoice = Invoice.objects.create(
-            customer=customer.customer_name,
-            contact=customer.customer_number,
-            email=customer.customer_email,
-            comments=request.POST.get("comments", ""),
+from django.shortcuts import render, redirect
+from django.http import FileResponse
+from django.contrib import messages
+from datetime import datetime, date
+from io import BytesIO
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from num2words import num2words
+
+from .models import Product, Customer, Invoice, InvoiceDetail
+from utils.adminhandler import admin_required
+
+
+@admin_required
+def create_invoice(request):
+    products = Product.objects.all()
+    customers = Customer.objects.all()  # Add this line for customer selection
+
+    # ✅ HANDLE GET REQUEST (VERY IMPORTANT)
+    if request.method == "GET":
+        return render(request, "invoice/create_invoice.html", {
+            "products": products,
+            "total_product": products.count(),
+            "total_invoice": Invoice.objects.count(),
+            "customers": customers,  # Add this to context
+        })
+
+    # ================= POST REQUEST =================
+    # ================= CUSTOMER =====================
+    selected_customer_id = request.POST.get("selected_customer_id")
+
+    new_name = request.POST.get("new_customer_name", "").strip()
+    new_mobile = request.POST.get("new_customer_mobile", "").strip()
+    new_email = request.POST.get("new_customer_email", "").strip()
+    new_gender = request.POST.get("new_customer_gender", "Male")
+    new_dob = request.POST.get("new_customer_dob")
+    new_status = request.POST.get("new_customer_status", "Normal")
+
+    customer = None
+
+    # EXISTING CUSTOMER
+    if selected_customer_id:
+        customer = Customer.objects.filter(id=selected_customer_id).first()
+
+    # NEW CUSTOMER
+    elif new_name and new_mobile:
+        dob = date.today()
+        if new_dob:
+            dob = datetime.strptime(new_dob, "%Y-%m-%d").date()
+
+        # Check if customer already exists with this mobile
+        existing_customer = Customer.objects.filter(
+            customer_number=new_mobile
+        ).first()
+        
+        if existing_customer:
+            customer = existing_customer
+        else:
+            customer, _ = Customer.objects.get_or_create(
+                customer_number=new_mobile,
+                defaults={
+                    "customer_name": new_name,
+                    "customer_gender": new_gender,
+                    "customer_dob": dob,
+                    "customer_email": new_email,
+                    "customer_status": new_status,
+                }
+            )
+
+    if not customer:
+        messages.error(request, "Please select or create a customer")
+        return redirect("create_invoice")
+
+    # ================= PRODUCTS =====================
+    product_ids = request.POST.getlist("products")
+    if not product_ids:
+        messages.error(request, "Please select at least one service")
+        return redirect("create_invoice")
+
+    # ================= INVOICE ======================
+    invoice = Invoice.objects.create(
+        customer=customer.customer_name,
+        contact=customer.customer_number,
+        email=customer.customer_email or "",
+        comments=request.POST.get("comments", "")
+    )
+
+    items = []
+    total = 0
+
+    for index, pid in enumerate(product_ids, start=1):
+        product = Product.objects.get(id=pid)
+        qty = int(request.POST.get(f"quantity_{pid}", 1))
+        price = product.services_price
+        subtotal = qty * price
+        total += subtotal
+
+        InvoiceDetail.objects.create(
+            invoice=invoice,
+            product=product,
+            amount=qty
         )
 
-        total = 0
-        items = []
+        items.append([
+            index,
+            product.services_name,
+            "9983",  # HSN/SAC code
+            str(qty),
+            "pcs",
+            f"{price:.2f}",
+            "0.00",  # Discount
+            "0.00",  # Tax %
+            f"{subtotal:.2f}",
+        ])
 
-        # ------------------------------
-        # 3️⃣ Build Invoice Details
-        # ------------------------------
-        for i, (product_id, quantity) in enumerate(zip(selected_products, quantities), start=1):
-            try:
-                product = Product.objects.get(id=product_id)
-            except Product.DoesNotExist:
-                continue
+    invoice.total = total
+    invoice.save()
 
-            qty = int(quantity) if quantity else 1
-            price = getattr(product, "services_price", getattr(product, "price", 0))
-            subtotal = price * qty
-            total += subtotal
-
-            # Save to DB
-            InvoiceDetail.objects.create(invoice=invoice, product=product, amount=qty)
-
-            # Add to items table
-            items.append([
-                i,
-                getattr(product, "services_name", getattr(product, "name", "Unnamed Product")),
-                "9983",  # Example HSN/SAC code
-                str(qty),
-                "pcs",
-                f"{price:.2f}",
-                "0.00",  # Discount
-                "0.00",  # Tax %
-                f"{subtotal:.2f}",
-            ])
-
-        invoice.total = total
-        invoice.save()
-
-        # ------------------------------
-        # 4️⃣ Generate Invoice PDF
-        # ------------------------------
-        buffer = io.BytesIO()
-        c = canvas.Canvas(buffer, pagesize=A4)
-        width, height = A4
-        
+    # ================= PDF GENERATION (UPDATED STRUCTURE) =================
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    
+    # Add background image (optional)
+    try:
         from reportlab.lib.utils import ImageReader
         bg_image = ImageReader("https://i.pinimg.com/1200x/5a/f3/12/5af312bd3ebb3a67d92bc1e266065d30.jpg")
         c.drawImage(bg_image, 0, 0, width=width, height=height, mask='auto')
+    except:
+        pass
 
+    # === Logo ===
+    try:
+        c.drawImage("https://curatherapycentre.com/images/logo.png", 40, height - 100, 
+                   width=50, height=50, mask='auto')
+    except:
+        pass
 
-        # === Logo ===
-        try:
-            c.drawImage("https://curatherapycentre.com/images/logo.png", 40, height - 100, width=50, height=50, mask='auto')
-        except:
-            pass
+    # === Header ===
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(width / 2, height - 50, "BILL OF SUPPLY")
+    c.setFont("Helvetica-Bold", 12)
+    c.drawCentredString(width / 2, height - 70, "CURA THERAPY CENTER")
 
-        # === Header ===
-        c.setFont("Helvetica-Bold", 14)
-        c.drawCentredString(width / 2, height - 50, "BILL OF SUPPLY")
-        c.setFont("Helvetica-Bold", 12)
-        c.drawCentredString(width / 2, height - 70, "CURA THERAPY CENTER")
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(width / 2, height - 85, "CMC Eye Hospital Road, Arni Road, Vellore")
+    c.drawCentredString(width / 2, height - 100, "Email: curatherapycenter@gmail.com | Mobile: +91 8610609373")
 
-        c.setFont("Helvetica", 9)
-        c.drawCentredString(width / 2, height - 85, "CMC Eye Hospital Road, Arni Road, Vellore")
-        c.drawCentredString(width / 2, height - 100, "Email: curatherapycenter@gmail.com | Mobile: +91 8610609373")
+    # === Border ===
+    c.setLineWidth(1)
+    c.rect(20, 20, width - 40, height - 40)
 
-        # === Border ===
-        c.setLineWidth(1)
-        c.rect(20, 20, width - 40, height - 40)
+    # === Billing Info ===
+    y = height - 130
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(30, y, "Billing Details")
+    y -= 15
+    c.setFont("Helvetica", 9)
+    c.drawString(30, y, f"Name: {invoice.customer}")
+    y -= 12
+    c.drawString(30, y, f"Mobile: {invoice.contact}")
+    y -= 12
+    c.drawString(30, y, f"Email: {invoice.email}")
+    y -= 12
+    c.drawString(30, y, f"Comments: {invoice.comments}")
 
-        # === Billing Info ===
-        y = height - 130
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(30, y, "Billing Details")
-        y -= 15
-        c.setFont("Helvetica", 9)
-        c.drawString(30, y, f"Name: {invoice.customer}")
-        y -= 12
-        c.drawString(30, y, f"Mobile: {invoice.contact}")
-        y -= 12
-        c.drawString(30, y, f"Email: {invoice.email}")
-        y -= 12
-        c.drawString(30, y, f"Comments: {invoice.comments}")
+    # === Invoice Info ===
+    info_x = 320
+    y = height - 130
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(info_x, y, "Invoice Info:")
+    y -= 15
+    c.setFont("Helvetica", 9)
+    c.drawString(info_x, y, f"Invoice No: {invoice.id}")
+    y -= 12
+    
+    # Handle created_at field (use current date if not available)
+    invoice_date = ""
+    if hasattr(invoice, 'created_at') and invoice.created_at:
+        invoice_date = invoice.created_at.strftime('%d-%b-%Y')
+    else:
+        invoice_date = date.today().strftime('%d-%b-%Y')
+    
+    c.drawString(info_x, y, f"Invoice Date: {invoice_date}")
+    y -= 12
+    c.drawString(info_x, y, f"Due Date: -")
+    y -= 12
+    c.drawString(info_x, y, f"Time: {datetime.now().strftime('%I:%M %p')}")
 
-        # === Invoice Info ===
-        info_x = 320
-        y = height - 130
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(info_x, y, "Invoice Info:")
-        y -= 15
-        c.setFont("Helvetica", 9)
-        c.drawString(info_x, y, f"Invoice No: {invoice.id}")
-        y -= 12
-        # c.drawString(info_x, y, f"Invoice Date: {invoice.created_at.strftime('%d-%b-%Y')}")
-        y -= 12
-        c.drawString(info_x, y, f"Due Date: -")
-        y -= 12
-        # c.drawString(info_x, y, f"Time: {invoice.created_at.strftime('%I:%M %p')}")
+    # === Table Header ===
+    y = height - 220
+    headers = ["Sr.", "Item Description", "HSN/SAC", "Qty", "Unit", "List Price", "Disc.", "Tax %", "Amount (₹)"]
+    col_x = [30, 60, 210, 280, 310, 350, 410, 460, 510]
+    row_height = 18
 
-        # === Table Header ===
-        y = height - 220
-        headers = ["Sr.", "Item Description", "HSN/SAC", "Qty", "Unit", "List Price", "Disc.", "Tax %", "Amount (₹)"]
-        col_x = [30, 60, 210, 280, 310, 350, 410, 460, 510]
-        row_height = 18
+    c.setFillColor(colors.lightgrey)
+    c.rect(25, y - 10, width - 50, 18, fill=True, stroke=False)
+    c.setFillColor(colors.black)
+    c.setFont("Helvetica-Bold", 9)
+    for i, h in enumerate(headers):
+        c.drawString(col_x[i], y - 5, h)
 
-        c.setFillColor(colors.lightgrey)
-        c.rect(25, y - 10, width - 50, 18, fill=True, stroke=False)
-        c.setFillColor(colors.black)
-        c.setFont("Helvetica-Bold", 9)
-        for i, h in enumerate(headers):
-            c.drawString(col_x[i], y - 5, h)
+    # === Table Data ===
+    y -= 25
+    c.setFont("Helvetica", 9)
+    for row in items:
+        for i, val in enumerate(row):
+            c.drawString(col_x[i], y, str(val))
+        y -= row_height
+        if y < 100:  # new page if space ends
+            c.showPage()
+            y = height - 100
+            c.setFont("Helvetica", 9)
 
-        # === Table Data ===
-        y -= 25
-        c.setFont("Helvetica", 9)
-        for row in items:
-            for i, val in enumerate(row):
-                c.drawString(col_x[i], y, str(val))
-            y -= row_height
-            if y < 100:  # new page if space ends
-                c.showPage()
-                y = height - 100
-                c.setFont("Helvetica", 9)
+    # === Total ===
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(120, y - 20, "Total")
+    c.drawRightString(width - 40, y - 20, f"{invoice.total:,.2f}")
 
-        # === Total ===
-        c.setFont("Helvetica-Bold", 11)
-        c.drawString(120, y - 20, "Total")
-        c.drawRightString(width - 40, y - 20, f"{invoice.total:,.2f}")
+    # === Amount in Words ===
+    c.setFont("Helvetica", 9)
+    amount_words = num2words(invoice.total, lang="en").title() + " Only"
+    c.drawString(35, y - 35, f"Rs. {amount_words}")
 
-        # === Amount in Words ===
-        c.setFont("Helvetica", 9)
-        amount_words = num2words(invoice.total, lang="en").title() + " Only"
-        c.drawString(35, y - 35, f"Rs. {amount_words}")
+    # === Bank Details ===
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(30, 120, "Bank Details:")
+    c.setFont("Helvetica", 9)
+    c.drawString(30, 108, "Bank:")
+    c.drawString(30, 96, "Account Number: ")
+    c.drawString(30, 84, "IFSC: ")
+    c.drawString(30, 72, "Branch: ")
+    c.rect(25, 60, 270, 70, stroke=True)
 
-        # === Bank Details ===
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(30, 120, "Bank Details:")
-        c.setFont("Helvetica", 9)
-        c.drawString(30, 108, "Bank:")
-        c.drawString(30, 96, "Account Number: ")
-        c.drawString(30, 84, "IFSC: ")
-        c.drawString(30, 72, "Branch: ")
-        c.rect(25, 60, 270, 70, stroke=True)
+    # === Terms ===
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(320, 120, "Terms & Conditions:")
+    c.setFont("Helvetica", 9)
+    terms = [
+        "1. Goods once sold will not be taken back.",
+        "2. Interest @18% p.a. will be charged if payment is delayed.",
+        "3. Subject to 'Tamil Nadu' Jurisdiction only."
+    ]
+    y_terms = 108
+    for term in terms:
+        c.drawString(320, y_terms, term)
+        y_terms -= 12
+    c.rect(315, 60, width - 340, 70, stroke=True)
 
-        # === Terms ===
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(320, 120, "Terms & Conditions:")
-        c.setFont("Helvetica", 9)
-        terms = [
-            "1. Goods once sold will not be taken back.",
-            "2. Interest @18% p.a. will be charged if payment is delayed.",
-            "3. Subject to 'Tamil Nadu' Jurisdiction only."
-        ]
-        y_terms = 108
-        for term in terms:
-            c.drawString(320, y_terms, term)
-            y_terms -= 12
-        c.rect(315, 60, width - 340, 70, stroke=True)
+    # === Signature ===
+    c.line(width - 140, 50, width - 40, 50)
+    c.drawRightString(width - 40, 40, "Authorized Signature")
 
-        # === Signature ===
+    c.showPage()
+    c.save()
+    buffer.seek(0)
 
-
-        c.line(width - 140, 50, width - 40, 50)
-        c.drawRightString(width - 40, 40, "Authorized Signature")
-
-        c.showPage()
-        c.save()
-        buffer.seek(0)
-
-        # Return file as response
-        # return redirect('view_invoice')
-
-        return FileResponse(buffer, as_attachment=True, filename=f"Invoice_{invoice.id}.pdf")
-
-    # ------------------------------
-    # GET Request
-    # ------------------------------
-    context = {
-        "total_product": total_product,
-        "total_invoice": total_invoice,
-        "products": products,
-        "customers": customers,
-    }
-    return render(request, "invoice/create_invoice.html", context)
+    return FileResponse(
+        buffer,
+        as_attachment=True,
+        filename=f"Invoice_{invoice.id}.pdf"
+    )
 
 
 # AJAX view for auto-filling customer details
@@ -1164,3 +1271,343 @@ def get_customer_details(request):
         })
     except Customer.DoesNotExist:
         return JsonResponse({"contact": "", "email": "", "customer_name": "", "customer_gender": "", "customer_status": ""})
+    
+    
+    
+from django.shortcuts import render, redirect
+from django.http import FileResponse
+from django.contrib import messages
+from datetime import datetime, date
+from io import BytesIO
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from num2words import num2words
+
+from .models import Product, Customer, Invoice, InvoiceDetail
+from utils.adminhandler import admin_required
+
+
+@admin_required
+def invoice(request):
+    
+    total_product = Product.objects.count()
+    total_invoice = Invoice.objects.count()
+    products = Product.objects.all()
+    customers = Customer.objects.all()
+
+    if request.method == "POST":
+        # ------------------------------
+        # 1️⃣ Handle Customer Creation/Selection
+        # ------------------------------
+        customer_id = request.POST.get("customer")
+        new_customer_name = request.POST.get("new_customer_name", "").strip()
+        new_customer_mobile = request.POST.get("new_customer_mobile", "").strip()
+        new_customer_email = request.POST.get("new_customer_email", "").strip()
+        new_customer_gender = request.POST.get("new_customer_gender", "Male")
+        new_customer_dob = request.POST.get("new_customer_dob", "")
+        new_customer_status = request.POST.get("new_customer_status", "Normal")
+        
+        customer = None
+        
+        # Option 1: Existing customer selected
+        if customer_id and customer_id != "new":
+            try:
+                customer = Customer.objects.get(id=customer_id)
+            except Customer.DoesNotExist:
+                pass
+        
+        # Option 2: New customer provided
+        elif new_customer_name and new_customer_mobile:
+            # Check if customer already exists with this mobile
+            existing_customer = Customer.objects.filter(
+                customer_number=new_customer_mobile
+            ).first()
+            
+            if existing_customer:
+                customer = existing_customer
+            else:
+                # Create new customer with all required fields
+                try:
+                    # Handle date conversion
+                    dob = None
+                    if new_customer_dob:
+                        try:
+                            dob = datetime.strptime(new_customer_dob, '%Y-%m-%d').date()
+                        except ValueError:
+                            dob = date.today()  # Use today as default
+                    else:
+                        dob = date.today()  # Use today as default
+                    
+                    customer = Customer.objects.create(
+                        customer_name=new_customer_name,
+                        customer_gender=new_customer_gender,
+                        customer_dob=dob,
+                        customer_number=new_customer_mobile,
+                        customer_email=new_customer_email if new_customer_email else None,
+                        customer_status=new_customer_status
+                    )
+                except Exception as e:
+                    return render(request, "invoice/create_invoice.html", {
+                        "error": f"Error creating customer: {str(e)}",
+                        "products": products,
+                        "customers": customers,
+                    })
+        
+        if not customer:
+            return render(request, "invoice/create_invoice.html", {
+                "error": "Please select a customer or enter new customer details.",
+                "products": products,
+                "customers": customers,
+            })
+
+        # ------------------------------
+        # 2️⃣ Get Selected Products
+        # ------------------------------
+        selected_products = request.POST.getlist("products")
+        quantities = request.POST.getlist("quantities")
+
+        if not selected_products:
+            return render(request, "invoice/create_invoice.html", {
+                "error": "Please select at least one product.",
+                "products": products,
+                "customers": customers,
+            })
+            
+    products = Product.objects.all()
+
+    # ✅ HANDLE GET REQUEST (VERY IMPORTANT)
+    if request.method == "GET":
+        return render(request, "invoice/create_invoice.html", {
+            "products": products,
+            "total_product": products.count(),
+            "total_invoice": Invoice.objects.count(),
+        })
+
+    # ================= POST REQUEST =================
+    # ================= CUSTOMER =====================
+    selected_customer_id = request.POST.get("selected_customer_id")
+
+    new_name = request.POST.get("new_customer_name", "").strip()
+    new_mobile = request.POST.get("new_customer_mobile", "").strip()
+    new_email = request.POST.get("new_customer_email", "").strip()
+    new_gender = request.POST.get("new_customer_gender", "Male")
+    new_dob = request.POST.get("new_customer_dob")
+    new_status = request.POST.get("new_customer_status", "Normal")
+
+    customer = None
+
+    # EXISTING CUSTOMER
+    if selected_customer_id:
+        customer = Customer.objects.filter(id=selected_customer_id).first()
+
+    # NEW CUSTOMER
+    elif new_name and new_mobile:
+        dob = date.today()
+        if new_dob:
+            dob = datetime.strptime(new_dob, "%Y-%m-%d").date()
+
+        customer, _ = Customer.objects.get_or_create(
+            customer_number=new_mobile,
+            defaults={
+                "customer_name": new_name,
+                "customer_gender": new_gender,
+                "customer_dob": dob,
+                "customer_email": new_email,
+                "customer_status": new_status,
+            }
+        )
+
+    if not customer:
+        messages.error(request, "Please select or create a customer")
+        return redirect("create_invoice")
+
+    # ================= PRODUCTS =====================
+    product_ids = request.POST.getlist("products")
+    if not product_ids:
+        messages.error(request, "Please select at least one service")
+        return redirect("create_invoice")
+
+    # ================= INVOICE ======================
+    invoice = Invoice.objects.create(
+            customer=customer.customer_name,
+            contact=customer.customer_number,
+            email=customer.customer_email or "",
+            comments=request.POST.get("comments", ""),
+        )
+
+    total = 0
+    items = []
+
+    # ------------------------------
+    # 4️⃣ Build Invoice Details
+    # ------------------------------
+    for i, (product_id, quantity) in enumerate(zip(selected_products, quantities), start=1):
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            continue
+
+        qty = int(quantity) if quantity else 1
+        price = getattr(product, "services_price", getattr(product, "price", 0))
+        subtotal = price * qty
+        total += subtotal
+
+        # Save to DB
+        InvoiceDetail.objects.create(invoice=invoice, product=product, amount=qty)
+
+        # Add to items table
+        items.append([
+            i,
+            getattr(product, "services_name", getattr(product, "name", "Unnamed Product")),
+            "9983",  # Example HSN/SAC code
+            str(qty),
+            "pcs",
+            f"{price:.2f}",
+            "0.00",  # Discount
+            "0.00",  # Tax %
+            f"{subtotal:.2f}",
+        ])
+
+    invoice.total = total
+    invoice.save()
+
+    # ------------------------------
+    # 5️⃣ Generate Invoice PDF
+    # ------------------------------
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    
+    from reportlab.lib.utils import ImageReader
+    bg_image = ImageReader("https://i.pinimg.com/1200x/5a/f3/12/5af312bd3ebb3a67d92bc1e266065d30.jpg")
+    c.drawImage(bg_image, 0, 0, width=width, height=height, mask='auto')
+
+
+    # === Logo ===
+    try:
+        c.drawImage("https://curatherapycentre.com/images/logo.png", 40, height - 100, width=50, height=50, mask='auto')
+    except:
+        pass
+
+    # === Header ===
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(width / 2, height - 50, "BILL OF SUPPLY")
+    c.setFont("Helvetica-Bold", 12)
+    c.drawCentredString(width / 2, height - 70, "CURA THERAPY CENTER")
+
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(width / 2, height - 85, "CMC Eye Hospital Road, Arni Road, Vellore")
+    c.drawCentredString(width / 2, height - 100, "Email: curatherapycenter@gmail.com | Mobile: +91 8610609373")
+
+    # === Border ===
+    c.setLineWidth(1)
+    c.rect(20, 20, width - 40, height - 40)
+
+    # === Billing Info ===
+    y = height - 130
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(30, y, "Billing Details")
+    y -= 15
+    c.setFont("Helvetica", 9)
+    c.drawString(30, y, f"Name: {invoice.customer}")
+    y -= 12
+    c.drawString(30, y, f"Mobile: {invoice.contact}")
+    y -= 12
+    c.drawString(30, y, f"Email: {invoice.email}")
+    y -= 12
+    c.drawString(30, y, f"Comments: {invoice.comments}")
+
+    # === Invoice Info ===
+    info_x = 320
+    y = height - 130
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(info_x, y, "Invoice Info:")
+    y -= 15
+    c.setFont("Helvetica", 9)
+    c.drawString(info_x, y, f"Invoice No: {invoice.id}")
+    y -= 12
+    c.drawString(info_x, y, f"Invoice Date: {invoice.created_at.strftime('%d-%b-%Y') if hasattr(invoice, 'created_at') else date.today().strftime('%d-%b-%Y')}")
+    y -= 12
+    c.drawString(info_x, y, f"Due Date: -")
+    y -= 12
+    c.drawString(info_x, y, f"Time: {datetime.now().strftime('%I:%M %p')}")
+
+    # === Table Header ===
+    y = height - 220
+    headers = ["Sr.", "Item Description", "HSN/SAC", "Qty", "Unit", "List Price", "Disc.", "Tax %", "Amount (₹)"]
+    col_x = [30, 60, 210, 280, 310, 350, 410, 460, 510]
+    row_height = 18
+
+    c.setFillColor(colors.lightgrey)
+    c.rect(25, y - 10, width - 50, 18, fill=True, stroke=False)
+    c.setFillColor(colors.black)
+    c.setFont("Helvetica-Bold", 9)
+    for i, h in enumerate(headers):
+        c.drawString(col_x[i], y - 5, h)
+
+    # === Table Data ===
+    y -= 25
+    c.setFont("Helvetica", 9)
+    for row in items:
+        for i, val in enumerate(row):
+            c.drawString(col_x[i], y, str(val))
+        y -= row_height
+        if y < 100:  # new page if space ends
+            c.showPage()
+            y = height - 100
+            c.setFont("Helvetica", 9)
+
+    # === Total ===
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(120, y - 20, "Total")
+    c.drawRightString(width - 40, y - 20, f"{invoice.total:,.2f}")
+
+    # === Amount in Words ===
+    c.setFont("Helvetica", 9)
+    amount_words = num2words(invoice.total, lang="en").title() + " Only"
+    c.drawString(35, y - 35, f"Rs. {amount_words}")
+
+    # === Bank Details ===
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(30, 120, "Bank Details:")
+    c.setFont("Helvetica", 9)
+    c.drawString(30, 108, "Bank:")
+    c.drawString(30, 96, "Account Number: ")
+    c.drawString(30, 84, "IFSC: ")
+    c.drawString(30, 72, "Branch: ")
+    c.rect(25, 60, 270, 70, stroke=True)
+
+    # === Terms ===
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(320, 120, "Terms & Conditions:")
+    c.setFont("Helvetica", 9)
+    terms = [
+        "1. Goods once sold will not be taken back.",
+        "2. Interest @18% p.a. will be charged if payment is delayed.",
+        "3. Subject to 'Tamil Nadu' Jurisdiction only."
+    ]
+    y_terms = 108
+    for term in terms:
+        c.drawString(320, y_terms, term)
+        y_terms -= 12
+    c.rect(315, 60, width - 340, 70, stroke=True)
+
+    # === Signature ===
+    c.line(width - 140, 50, width - 40, 50)
+    c.drawRightString(width - 40, 40, "Authorized Signature")
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+
+    return FileResponse(buffer, as_attachment=True, filename=f"Invoice_{invoice.id}.pdf")
+
+    #
+    context = {
+            "total_product": total_product,
+            "total_invoice": total_invoice,
+            "products": products,
+            "customers": customers,
+        }
+    return render(request, "invoice/create_invoice.html", context)
