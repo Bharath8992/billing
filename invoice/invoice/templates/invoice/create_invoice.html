@@ -2,15 +2,18 @@
 {% load static %}
 {% block content %}
 <div class="row">
-  <div class="col-xl-12 col-lg-7">
+  <div class="col-12">
     <div class="card shadow mb-4">
-      <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <label class="m-0 font-weight-bold text-primary">Create Invoice</label>
-        <span class="badge badge-primary">Products: {{ total_product }} | Invoices: {{ total_invoice }}</span>
+      <div class="card-header py-3 d-flex flex-column flex-md-row justify-content-between align-items-center">
+        <label class="m-0 font-weight-bold text-primary mb-2 mb-md-0">Create Invoice</label>
+        <div class="d-flex flex-wrap justify-content-center">
+          <span class="badge badge-primary mr-2 mb-1">Products: {{ total_product }}</span>
+          <span class="badge badge-primary mb-1">Invoices: {{ total_invoice }}</span>
+        </div>
       </div>
 
       <div class="card-body">
-        <form method="post" action="{% url 'create_invoice' %}">
+        <form method="post" action="{% url 'create_invoice' %}" id="invoiceForm">
           {% csrf_token %}
           
           {% if messages %}
@@ -27,20 +30,25 @@
           <!-- Customer Selection -->
           <div class="mb-4">
             <div class="card">
-              <div class="card-header bg-primary text-white">
-                <h6 class="mb-0"><i class="fas fa-user mr-2"></i>Customer Information *</h6>
+              <div class="card-header bg-primary text-white d-flex align-items-center">
+                <i class="fas fa-user mr-2"></i>
+                <h6 class="mb-0 flex-grow-1">Customer Information *</h6>
               </div>
               <div class="card-body">
-                <!-- Tabs -->
+                <!-- Mobile-friendly Tabs -->
                 <ul class="nav nav-tabs mb-3" id="customerTab" role="tablist">
-                  <li class="nav-item">
+                  <li class="nav-item flex-grow-1 text-center">
                     <a class="nav-link active" id="existing-tab" data-toggle="tab" href="#existing">
-                      <i class="fas fa-search mr-2"></i>Search Existing Customer
+                      <i class="fas fa-search d-block d-md-inline mb-1 mb-md-0 mr-md-2"></i>
+                      <span class="d-none d-md-inline">Search Existing</span>
+                      <span class="d-md-none">Existing</span>
                     </a>
                   </li>
-                  <li class="nav-item">
+                  <li class="nav-item flex-grow-1 text-center">
                     <a class="nav-link" id="new-tab" data-toggle="tab" href="#new">
-                      <i class="fas fa-user-plus mr-2"></i>Create New Customer
+                      <i class="fas fa-user-plus d-block d-md-inline mb-1 mb-md-0 mr-md-2"></i>
+                      <span class="d-none d-md-inline">Create New</span>
+                      <span class="d-md-none">New</span>
                     </a>
                   </li>
                 </ul>
@@ -79,8 +87,9 @@
                     
                     <!-- Customer Details Card -->
                     <div class="card mt-3" id="customerDetailsCard" style="display: none;">
-                      <div class="card-header bg-light">
-                        <h6 class="mb-0"><i class="fas fa-user-circle mr-2"></i>Selected Customer Details</h6>
+                      <div class="card-header bg-light d-flex align-items-center">
+                        <i class="fas fa-user-circle mr-2"></i>
+                        <h6 class="mb-0 flex-grow-1">Selected Customer Details</h6>
                       </div>
                       <div class="card-body">
                         <div class="row">
@@ -164,7 +173,7 @@
                       </div>
                     </div>
                     <!-- Error container for new customer -->
-                    <div id="new-customer-error" class="alert alert-danger" style="display: none;">
+                    <div id="new-customer-error" class="alert alert-danger mt-2" style="display: none;">
                       Please fill all required fields for new customer
                     </div>
                   </div>
@@ -176,8 +185,9 @@
           <!-- Comments -->
           <div class="mb-4">
             <div class="card">
-              <div class="card-header">
-                <h6 class="mb-0"><i class="fas fa-comment mr-2"></i>Comments (Optional)</h6>
+              <div class="card-header d-flex align-items-center">
+                <i class="fas fa-comment mr-2"></i>
+                <h6 class="mb-0 flex-grow-1">Comments (Optional)</h6>
               </div>
               <div class="card-body">
                 <textarea name="comments" class="form-control" rows="2" 
@@ -189,42 +199,65 @@
           <!-- Service Selection -->
           <div class="mb-4">
             <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0"><i class="fas fa-spa mr-2"></i>Select Services *</h6>
-                <span class="badge badge-info">Total: {{ products|length }} services</span>
+              <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                <div class="d-flex align-items-center mb-2 mb-md-0">
+                  <i class="fas fa-spa mr-2"></i>
+                  <h6 class="mb-0">Select Services *</h6>
+                </div>
+                <div class="d-flex align-items-center w-100 w-md-auto">
+                  <div class="input-group input-group-sm mr-2 flex-grow-1 flex-md-grow-0" style="min-width: 200px;">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input type="text" class="form-control" id="serviceSearch" placeholder="Search services...">
+                    <div class="input-group-append">
+                      <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <span class="badge badge-info">Total: {{ products|length }}</span>
+                </div>
               </div>
               <div class="card-body">
                 {% if products %}
-                  <div class="row">
+                  <div class="row" id="servicesContainer">
                     {% for p in products %}
-                    <div class="col-md-3 col-sm-4 col-6 text-center mb-3">
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3 service-card">
                       <div class="card h-100 shadow-sm">
-                        <div class="card-body">
-                          {% if p.services_image %}
-                            <img src="{{ p.services_image.url }}" alt="{{ p.services_name }}" 
-                                 class="img-fluid mb-2" style="height: 120px; object-fit: cover; width: 100%;">
-                          {% else %}
-                            <img src="{% static 'no-image.jpg' %}" 
-                                 class="img-fluid mb-2" style="height: 120px; object-fit: cover; width: 100%;">
-                          {% endif %}
-                          <h6 class="card-title">{{ p.services_name }}</h6>
-                          <p class="card-text text-success">
-                            <strong>₹{{ p.services_price }}</strong>
-                          </p>
-                          <div class="form-check">
-                            <input type="checkbox" name="products" value="{{ p.id }}" 
-                                   class="form-check-input product-checkbox" 
-                                   id="product_{{ p.id }}"
-                                   {% if p.id|stringformat:"s" in request.POST.products %}checked{% endif %}>
-                            <label class="form-check-label" for="product_{{ p.id }}">Select</label>
-                          </div>
-                          <div class="mt-2">
-                            <input type="number" name="quantity_{{ p.id }}" 
-                                   data-product="{{ p.id }}" 
-                                   min="1" value="{% if request.POST.quantity %}{{ request.POST.quantity }}{% else %}1{% endif %}" 
-                                   class="form-control text-center quantity-input" 
-                                   style="width: 80px; margin: 0 auto;"
-                                   disabled>
+                        <div class="card-body p-2">
+                          <div class="d-flex align-items-start">
+                            {% if p.services_image %}
+                              <img src="{{ p.services_image.url }}" alt="{{ p.services_name }}" 
+                                   class="img-fluid rounded mr-2" style="width: 70px; height: 70px; object-fit: cover;">
+                            {% else %}
+                              <img src="{% static 'no-image.jpg' %}" 
+                                   class="img-fluid rounded mr-2" style="width: 70px; height: 70px; object-fit: cover;">
+                            {% endif %}
+                            <div class="flex-grow-1">
+                              <h6 class="card-title mb-1 text-truncate" title="{{ p.services_name }}">
+                                {{ p.services_name }}
+                              </h6>
+                              <p class="card-text text-success mb-1">
+                                <strong>₹{{ p.services_price }}</strong>
+                              </p>
+                              <div class="d-flex align-items-center justify-content-between">
+                                <div class="form-check mb-0">
+                                  <input type="checkbox" name="products" value="{{ p.id }}" 
+                                         class="form-check-input product-checkbox" 
+                                         id="product_{{ p.id }}"
+                                         {% if p.id|stringformat:"s" in request.POST.products %}checked{% endif %}>
+                                  <label class="form-check-label small" for="product_{{ p.id }}">Select</label>
+                                </div>
+                                <div class="quantity-container" style="width: 80px;">
+                                  <input type="number" name="quantity_{{ p.id }}" 
+                                         data-product="{{ p.id }}" 
+                                         min="1" value="{% if request.POST.quantity %}{{ request.POST.quantity }}{% else %}1{% endif %}" 
+                                         class="form-control form-control-sm quantity-input" 
+                                         disabled>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -234,6 +267,10 @@
                   <!-- Error container for services -->
                   <div id="services-error" class="alert alert-danger mt-3" style="display: none;">
                     Please select at least one service
+                  </div>
+                  <!-- No results message -->
+                  <div id="noResults" class="alert alert-warning text-center" style="display: none;">
+                    <i class="fas fa-search mr-2"></i>No services found matching your search.
                   </div>
                 {% else %}
                   <div class="alert alert-warning text-center">
@@ -246,44 +283,72 @@
 
           <!-- Order Summary -->
           <div class="card mb-4">
-            <div class="card-header">
-              <h6 class="mb-0"><i class="fas fa-receipt mr-2"></i>Order Summary</h6>
+            <div class="card-header d-flex align-items-center">
+              <i class="fas fa-receipt mr-2"></i>
+              <h6 class="mb-0 flex-grow-1">Order Summary</h6>
             </div>
             <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-sm mb-3">
+                  <thead class="thead-light">
+                    <tr>
+                      <th>Service</th>
+                      <th class="text-center">Qty</th>
+                      <th class="text-right">Price</th>
+                      <th class="text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="summary-table">
+                    <tr><td colspan="4" class="text-center">No services selected</td></tr>
+                  </tbody>
+                </table>
+              </div>
               <div class="row">
-                <div class="col-md-8">
-                  <table class="table table-sm">
-                    <thead>
-                      <tr>
-                        <th>Service</th>
-                        <th>Qty</th>
-                        <th>Price</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody id="summary-table">
-                      <tr><td colspan="4" class="text-center">No services selected</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="col-md-4">
-                  <div class="text-end">
-                    <h5>Total: ₹<span id="total-amount">0.00</span></h5>
-                    <small class="text-muted" id="total-words">Zero Rupees Only</small>
+                {% comment %} <div class="col-md-8">
+                  <div class="form-group">
+                    <label class="text-muted">Additional Notes (Optional)</label>
+                    <textarea class="form-control" rows="2" id="invoiceNotes" placeholder="Additional notes for the invoice..."></textarea>
+                  </div>
+                </div> {% endcomment %}
+                <div class="col-md-4 mt-5">
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between mb-2">
+                        <span class="font-weight-bold">Subtotal:</span>
+                        <span>₹<span id="subtotal-amount">0.00</span></span>
+                      </div>
+                      <div class="d-flex justify-content-between mb-2">
+                        <span class="font-weight-bold">Tax (0%):</span>
+                        <span>₹<span id="tax-amount">0.00</span></span>
+                      </div>
+                      <hr class="my-2">
+                      <div class="d-flex justify-content-between">
+                        <span class="h5 mb-0">Total:</span>
+                        <span class="h5 mb-0 text-success">₹<span id="total-amount">0.00</span></span>
+                      </div>
+                      <small class="text-muted d-block mt-1" id="total-words">Zero Rupees Only</small>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Submit Button -->
+          <!-- Submit Buttons -->
           <div class="text-center">
-            <button type="submit" class="btn btn-success btn-lg px-5">
-              <i class="fas fa-file-invoice-dollar mr-2"></i>Generate Invoice
+            <button type="submit" class="btn btn-success btn-lg px-4 px-md-5 mb-2">
+              <i class="fas fa-file-invoice-dollar mr-2"></i>
+              <span class="d-none d-md-inline">Generate Invoice</span>
+              <span class="d-md-none">Generate</span>
             </button>
-            <a href="{% url 'view_invoice' %}" class="btn btn-secondary btn-lg px-5 ml-2">
-              <i class="fas fa-times mr-2"></i>Cancel
-            </a>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+              <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
+                <i class="fas fa-redo mr-1"></i>Clear Form
+              </button>
+              <button type="button" class="btn btn-outline-info" onclick="printPreview()">
+                <i class="fas fa-print mr-1"></i>Print Preview
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -311,37 +376,34 @@ $(document).ready(function() {
         allowClear: true,
         width: '100%',
         minimumInputLength: 2,
+        dropdownParent: $('#existing'),
         templateResult: function(customer) {
             if (!customer.id) return customer.text;
             
-            // For AJAX results
             if (customer.customer) {
                 var $container = $(
-                    '<div class="customer-option">' +
-                        '<div class="font-weight-bold">' + customer.customer.name + '</div>' +
+                    '<div class="customer-option d-flex flex-column p-2">' +
+                        '<div class="font-weight-bold text-truncate">' + customer.customer.name + '</div>' +
                         '<div class="small text-muted">' +
-                            '<i class="fas fa-phone mr-1"></i>' + customer.customer.number +
-                            (customer.customer.email ? '<br><i class="fas fa-envelope mr-1"></i>' + customer.customer.email : '') +
-                            '<br><i class="fas fa-venus-mars mr-1"></i>' + customer.customer.gender +
-                            ' | <i class="fas fa-tag mr-1"></i>' + customer.customer.status +
+                            '<div><i class="fas fa-phone fa-xs mr-1"></i>' + customer.customer.number + '</div>' +
+                            (customer.customer.email ? '<div><i class="fas fa-envelope fa-xs mr-1"></i>' + customer.customer.email + '</div>' : '') +
+                            '<div><i class="fas fa-venus-mars fa-xs mr-1"></i>' + customer.customer.gender + 
+                            ' | <i class="fas fa-tag fa-xs mr-1"></i>' + customer.customer.status + '</div>' +
                         '</div>' +
                     '</div>'
                 );
                 return $container;
             }
             
-            // For static options
             return customer.text;
         },
         templateSelection: function(customer) {
             if (!customer.id) return customer.text;
             
-            // For AJAX results
             if (customer.customer) {
                 return customer.customer.name + ' - ' + customer.customer.number;
             }
             
-            // For static options
             return customer.text;
         }
     });
@@ -391,8 +453,8 @@ $(document).ready(function() {
             $('#customerDetailsCard').slideUp();
             
             // Set default values for new customer
-            $('input[name="new_customer_gender"]').val('Male');
-            $('input[name="new_customer_status"]').val('Normal');
+            $('select[name="new_customer_gender"]').val('Male');
+            $('select[name="new_customer_status"]').val('Normal');
             $('input[name="new_customer_dob"]').val(formattedDate);
         } else if (targetTab === '#existing') {
             // Switching to existing customer tab
@@ -410,8 +472,35 @@ $(document).ready(function() {
         $('.is-invalid').removeClass('is-invalid');
     });
     
+    // Service search functionality
+    $('#serviceSearch').on('keyup', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        let visibleCount = 0;
+        
+        $('.service-card').each(function() {
+            const serviceName = $(this).find('.card-title').text().toLowerCase();
+            if (serviceName.includes(searchTerm)) {
+                $(this).show();
+                visibleCount++;
+            } else {
+                $(this).hide();
+            }
+        });
+        
+        if (visibleCount === 0 && searchTerm.length > 0) {
+            $('#noResults').show();
+        } else {
+            $('#noResults').hide();
+        }
+    });
+    
+    $('#clearSearch').on('click', function() {
+        $('#serviceSearch').val('').trigger('keyup');
+        $('#serviceSearch').focus();
+    });
+    
     // Product selection logic
-    $('.product-checkbox').change(function() {
+    $(document).on('change', '.product-checkbox', function() {
         const id = $(this).val();
         const qtyInput = $(`.quantity-input[data-product="${id}"]`);
         
@@ -425,7 +514,7 @@ $(document).ready(function() {
         updateSummary();
     });
     
-    $('.quantity-input').on('input', function() {
+    $(document).on('input', '.quantity-input', function() {
         const val = parseInt($(this).val());
         if (val < 1 || isNaN(val)) {
             $(this).val(1);
@@ -435,7 +524,7 @@ $(document).ready(function() {
     
     // Update order summary
     function updateSummary() {
-        let total = 0;
+        let subtotal = 0;
         let html = '';
         let itemCount = 0;
         
@@ -446,27 +535,39 @@ $(document).ready(function() {
             const priceText = card.find('.card-text strong').text().replace('₹','').trim();
             const price = parseFloat(priceText) || 0;
             const qty = parseInt($(`.quantity-input[data-product="${id}"]`).val()) || 1;
-            const subtotal = price * qty;
-            total += subtotal;
+            const itemTotal = price * qty;
+            subtotal += itemTotal;
             itemCount++;
             
             html += `
                 <tr>
-                    <td>${name}</td>
-                    <td>${qty}</td>
-                    <td>₹${price.toFixed(2)}</td>
-                    <td>₹${subtotal.toFixed(2)}</td>
+                    <td class="align-middle">
+                        <div class="text-truncate" style="max-width: 200px;" title="${name}">
+                            ${name}
+                        </div>
+                    </td>
+                    <td class="text-center align-middle">${qty}</td>
+                    <td class="text-right align-middle">₹${price.toFixed(2)}</td>
+                    <td class="text-right align-middle font-weight-bold">₹${itemTotal.toFixed(2)}</td>
                 </tr>
             `;
         });
         
         if (itemCount === 0) {
-            html = '<tr><td colspan="4" class="text-center">No services selected</td></tr>';
+            html = '<tr><td colspan="4" class="text-center py-3">No services selected</td></tr>';
         }
         
         $('#summary-table').html(html);
-        $('#total-amount').text(total.toFixed(2));
-        $('#total-words').text(numberToWords(total) + ' Only');
+        $('#subtotal-amount').text(subtotal.toFixed(2));
+        
+        // Calculate tax (currently 0%, but you can modify this)
+        const taxRate = 0;
+        const taxAmount = subtotal * taxRate;
+        const totalAmount = subtotal + taxAmount;
+        
+        $('#tax-amount').text(taxAmount.toFixed(2));
+        $('#total-amount').text(totalAmount.toFixed(2));
+        $('#total-words').text(numberToWords(totalAmount) + ' Only');
     }
     
     // Number to words function
@@ -504,7 +605,7 @@ $(document).ready(function() {
     }
     
     // Form validation on submit
-    $('form').submit(function(e) {
+    $('#invoiceForm').submit(function(e) {
         e.preventDefault();
         
         let isValid = true;
@@ -577,7 +678,10 @@ $(document).ready(function() {
             // Create a temporary alert
             const alertHtml = `
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    ${errorMessage}
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <div>${errorMessage}</div>
+                    </div>
                     <button type="button" class="close" data-dismiss="alert">
                         <span>&times;</span>
                     </button>
@@ -606,6 +710,76 @@ $(document).ready(function() {
         }
     });
     
+    // Clear form function
+    window.clearForm = function() {
+        if (confirm('Are you sure you want to clear the entire form?')) {
+            // Clear customer selection
+            $('.select2-customers').val(null).trigger('change');
+            $('#customerDetailsCard').hide();
+            clearCustomerDetails();
+            
+            // Clear new customer form
+            $('input[name="new_customer_name"]').val('');
+            $('input[name="new_customer_mobile"]').val('');
+            $('input[name="new_customer_email"]').val('');
+            $('select[name="new_customer_gender"]').val('Male');
+            $('select[name="new_customer_status"]').val('Normal');
+            $('input[name="new_customer_dob"]').val(formattedDate);
+            
+            // Clear services
+            $('.product-checkbox').prop('checked', false).change();
+            $('#serviceSearch').val('').trigger('keyup');
+            
+            // Clear comments
+            $('textarea[name="comments"]').val('');
+            $('#invoiceNotes').val('');
+            
+            // Switch to existing customer tab
+            $('#existing-tab').tab('show');
+            
+            // Clear errors
+            $('.alert').remove();
+            $('.is-invalid').removeClass('is-invalid');
+            
+            showToast('Form cleared successfully!', 'success');
+        }
+    };
+    
+    // Print preview function
+    window.printPreview = function() {
+        // You can implement print preview functionality here
+        // For now, just show a message
+        showToast('Print preview feature coming soon!', 'info');
+    };
+    
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toastId = 'toast-' + Date.now();
+        const toastHtml = `
+            <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000">
+                <div class="toast-header bg-${type} text-white">
+                    <strong class="mr-auto">
+                        ${type === 'success' ? '<i class="fas fa-check-circle mr-1"></i>' : 
+                          type === 'error' ? '<i class="fas fa-exclamation-circle mr-1"></i>' :
+                          '<i class="fas fa-info-circle mr-1"></i>'}
+                        ${type.charAt(0).toUpperCase() + type.slice(1)}
+                    </strong>
+                    <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            </div>
+        `;
+        
+        $('.toast-container').remove();
+        $('body').append('<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>');
+        $('.toast-container').html(toastHtml);
+        $(`#${toastId}`).toast('show');
+    }
+    
     // Initialize summary
     updateSummary();
     
@@ -621,10 +795,86 @@ $(document).ready(function() {
             $('#new-tab').tab('show');
         {% endif %}
     {% endif %}
+    
+    // Mobile menu toggle for better UX
+    $(window).on('resize', function() {
+        if ($(window).width() < 768) {
+            $('.select2-container').css('width', '100%');
+        }
+    }).trigger('resize');
 });
 </script>
 
 <style>
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card-header h6 {
+        font-size: 1rem;
+    }
+    
+    .customer-option {
+        padding: 6px;
+        font-size: 0.9rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .service-card .card-title {
+        font-size: 0.9rem;
+    }
+    
+    .quantity-container {
+        width: 70px !important;
+    }
+    
+    .quantity-input {
+        font-size: 0.8rem;
+        padding: 0.25rem;
+    }
+    
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .nav-tabs .nav-link {
+        font-size: 0.8rem;
+        padding: 0.4rem;
+    }
+    
+    .select2-container--default .select2-selection--single {
+        height: calc(2.25rem + 2px);
+    }
+    
+    .service-card {
+        margin-bottom: 0.5rem;
+    }
+    
+    .service-card .card-body {
+        padding: 0.75rem;
+    }
+    
+    .table th, .table td {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Mobile-specific improvements */
+.mobile-optimized {
+    font-size: 14px;
+}
+
+/* Select2 mobile optimization */
 .select2-container--default .select2-selection--single {
     border: 2px solid #ced4da;
     border-radius: 0.375rem;
@@ -640,9 +890,11 @@ $(document).ready(function() {
     border-color: #dc3545;
 }
 
+/* Customer option styling */
 .customer-option {
     padding: 8px;
     border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
 }
 
 .customer-option:last-child {
@@ -653,25 +905,38 @@ $(document).ready(function() {
     background-color: #f8f9fa;
 }
 
+/* Card hover effects */
 .card.border-success {
     border-color: #28a745 !important;
     box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+    transition: all 0.3s ease;
+}
+
+/* Tab styling */
+.nav-tabs {
+    border-bottom: 2px solid #dee2e6;
 }
 
 .nav-tabs .nav-link {
     font-weight: 600;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #6c757d;
+    transition: all 0.3s;
 }
 
 .nav-tabs .nav-link.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
+    background-color: transparent;
+    color: #007bff;
+    border-bottom: 3px solid #007bff;
 }
 
 .nav-tabs .nav-link:hover:not(.active) {
-    background-color: #f8f9fa;
+    color: #495057;
+    border-bottom: 3px solid rgba(0, 123, 255, 0.5);
 }
 
+/* Animation for customer details */
 #customerDetailsCard {
     animation: fadeIn 0.3s ease;
     border-left: 4px solid #007bff;
@@ -682,9 +947,78 @@ $(document).ready(function() {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Disabled input styling */
 .quantity-input:disabled {
     background-color: #f8f9fa;
     cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Service card hover effect */
+.service-card .card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.service-card .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Search input focus */
+#serviceSearch:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Toast container */
+.toast-container {
+    z-index: 9999;
+}
+
+/* Touch-friendly buttons */
+.btn {
+    padding: 0.375rem 0.75rem;
+    touch-action: manipulation;
+}
+
+/* Ensure proper spacing on mobile */
+.mb-2-mobile {
+    margin-bottom: 0.5rem;
+}
+
+/* Improve form control sizing on mobile */
+.form-control, .form-select {
+    font-size: 16px; /* Prevents zoom on iOS */
+}
+
+/* Better table responsiveness */
+.table-responsive {
+    border-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+}
+
+/* Card shadow on mobile */
+@media (max-width: 768px) {
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+}
+
+/* Improve button spacing on mobile */
+@media (max-width: 576px) {
+    .btn-lg {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Better badge spacing */
+.badge {
+    margin-bottom: 2px;
 }
 </style>
+
+<!-- Add toast container to base template or here -->
+<div class="toast-container"></div>
 {% endblock %}
