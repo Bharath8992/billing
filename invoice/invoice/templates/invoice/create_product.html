@@ -39,6 +39,17 @@
                         {% endif %}
                     </div>
 
+
+                    <div class="mb-3">
+                        <label class="form-label" for="membership_price">Membership Price</label>
+                        {{ form.membership_price }}
+                        {% if form.membership_price.errors %}
+                            <div class="text-danger">
+                                {{ form.membership_price.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label" for="services_duration"> Services Duration</label>
                         {{ form.services_duration }}

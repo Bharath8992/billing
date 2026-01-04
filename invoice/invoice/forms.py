@@ -10,6 +10,7 @@ class ProductForm(forms.ModelForm):
         fields = [
             'services_name',
             'services_price',
+            'membership_price',
             'services_duration',
             'services_image',
         ]
@@ -23,6 +24,12 @@ class ProductForm(forms.ModelForm):
                 'class': 'form-control',
                 'id': 'services_price',
                 'placeholder': 'Enter price of the services',
+                'type': 'number',
+            }),
+            'membership_price': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'id': 'membership_price',
+                'placeholder': 'Enter price of the membership',
                 'type': 'number',
             }),
             'services_duration': forms.NumberInput(attrs={

@@ -71,6 +71,7 @@
                                 data-status="{{ customer.customer_status|default:'Normal' }}">
                           {{ customer.customer_name }} - {{ customer.customer_number }}
                           {% if customer.customer_email %} - {{ customer.customer_email }}{% endif %}
+                          ({{ customer.customer_status }})
                         </option>
                         {% endfor %}
                       </select>
@@ -79,6 +80,8 @@
                       </small>
                       <!-- Hidden input for existing customer ID -->
                       <input type="hidden" id="selected_customer_id" name="selected_customer_id">
+                      <!-- Hidden input for customer status -->
+                      <input type="hidden" id="customer_status_value" name="customer_status" value="Normal">
                       <!-- Error container for existing customer -->
                       <div id="existing-customer-error" class="invalid-feedback" style="display: none;">
                         Please select a customer from the dropdown
@@ -165,7 +168,7 @@
                         </div>
                         <div class="form-group">
                           <label class="font-weight-bold">Customer Status *</label>
-                          <select name="new_customer_status" class="form-control" required>
+                          <select name="new_customer_status" class="form-control" id="new_customer_status" required>
                             <option value="Normal" {% if request.POST.new_customer_status == 'Normal' or not request.POST.new_customer_status %}selected{% endif %}>Normal</option>
                             <option value="Membership" {% if request.POST.new_customer_status == 'Membership' %}selected{% endif %}>Membership</option>
                           </select>
@@ -176,6 +179,38 @@
                     <div id="new-customer-error" class="alert alert-danger mt-2" style="display: none;">
                       Please fill all required fields for new customer
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Price Type Selection (Only shows when customer is Membership) -->
+          <div class="mb-4" id="priceTypeSection" style="display: none;">
+            <div class="card">
+              <div class="card-header bg-warning text-white d-flex align-items-center">
+                <i class="fas fa-tag mr-2"></i>
+                <h6 class="mb-0 flex-grow-1">Price Type Selection</h6>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info">
+                  <i class="fas fa-info-circle mr-2"></i>
+                  This customer has <strong>Membership</strong> status. You can choose to use either regular prices or membership prices.
+                </div>
+                <div class="form-group">
+                  <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" id="priceTypeRegular" name="price_type" value="regular" class="custom-control-input" checked>
+                    <label class="custom-control-label font-weight-bold" for="priceTypeRegular">
+                      Regular Price
+                      <small class="text-muted d-block">Use standard service prices</small>
+                    </label>
+                  </div>
+                  <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" id="priceTypeMembership" name="price_type" value="membership" class="custom-control-input">
+                    <label class="custom-control-label font-weight-bold" for="priceTypeMembership">
+                      Membership Price
+                      <small class="text-muted d-block">Use discounted membership prices</small>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -238,14 +273,24 @@
                               <h6 class="card-title mb-1 text-truncate" title="{{ p.services_name }}">
                                 {{ p.services_name }}
                               </h6>
-                              <p class="card-text text-success mb-1">
-                                <strong>₹{{ p.services_price }}</strong>
-                              </p>
+                              <div class="price-container mb-1">
+                                <span class="regular-price text-muted" style="display: block;">
+                                  <del>₹{{ p.services_price }}</del>
+                                </span>
+                                <span class="membership-price text-success font-weight-bold" style="display: none;">
+                                  ₹{{ p.membership_price }}
+                                </span>
+                                <span class="single-price text-success font-weight-bold">
+                                  ₹{{ p.services_price }}
+                                </span>
+                              </div>
                               <div class="d-flex align-items-center justify-content-between">
                                 <div class="form-check mb-0">
                                   <input type="checkbox" name="products" value="{{ p.id }}" 
                                          class="form-check-input product-checkbox" 
                                          id="product_{{ p.id }}"
+                                         data-regular-price="{{ p.services_price }}"
+                                         data-membership-price="{{ p.membership_price }}"
                                          {% if p.id|stringformat:"s" in request.POST.products %}checked{% endif %}>
                                   <label class="form-check-label small" for="product_{{ p.id }}">Select</label>
                                 </div>
@@ -294,23 +339,18 @@
                     <tr>
                       <th>Service</th>
                       <th class="text-center">Qty</th>
+                      <th class="text-right">Price Type</th>
                       <th class="text-right">Price</th>
                       <th class="text-right">Total</th>
                     </tr>
                   </thead>
                   <tbody id="summary-table">
-                    <tr><td colspan="4" class="text-center">No services selected</td></tr>
+                    <tr><td colspan="5" class="text-center">No services selected</td></tr>
                   </tbody>
                 </table>
               </div>
               <div class="row">
-                {% comment %} <div class="col-md-8">
-                  <div class="form-group">
-                    <label class="text-muted">Additional Notes (Optional)</label>
-                    <textarea class="form-control" rows="2" id="invoiceNotes" placeholder="Additional notes for the invoice..."></textarea>
-                  </div>
-                </div> {% endcomment %}
-                <div class="col-md-4 mt-5">
+                <div class="col-md-4 mt-5 ml-auto">
                   <div class="card bg-light">
                     <div class="card-body">
                       <div class="d-flex justify-content-between mb-2">
@@ -321,12 +361,19 @@
                         <span class="font-weight-bold">Tax (0%):</span>
                         <span>₹<span id="tax-amount">0.00</span></span>
                       </div>
+                      <div class="d-flex justify-content-between mb-2" id="discount-section" style="display: none;">
+                        <span class="font-weight-bold text-success">Membership Discount:</span>
+                        <span class="text-success">-₹<span id="discount-amount">0.00</span></span>
+                      </div>
                       <hr class="my-2">
                       <div class="d-flex justify-content-between">
                         <span class="h5 mb-0">Total:</span>
                         <span class="h5 mb-0 text-success">₹<span id="total-amount">0.00</span></span>
                       </div>
                       <small class="text-muted d-block mt-1" id="total-words">Zero Rupees Only</small>
+                      <small class="text-muted d-block mt-2" id="price-type-indicator">
+                        <i class="fas fa-info-circle"></i> Using regular prices
+                      </small>
                     </div>
                   </div>
                 </div>
@@ -388,7 +435,7 @@ $(document).ready(function() {
                             '<div><i class="fas fa-phone fa-xs mr-1"></i>' + customer.customer.number + '</div>' +
                             (customer.customer.email ? '<div><i class="fas fa-envelope fa-xs mr-1"></i>' + customer.customer.email + '</div>' : '') +
                             '<div><i class="fas fa-venus-mars fa-xs mr-1"></i>' + customer.customer.gender + 
-                            ' | <i class="fas fa-tag fa-xs mr-1"></i>' + customer.customer.status + '</div>' +
+                            ' | <i class="fas fa-tag fa-xs mr-1"></i><span class="badge badge-' + (customer.customer.status === 'Membership' ? 'warning' : 'info') + '">' + customer.customer.status + '</span></div>' +
                         '</div>' +
                     '</div>'
                 );
@@ -401,7 +448,7 @@ $(document).ready(function() {
             if (!customer.id) return customer.text;
             
             if (customer.customer) {
-                return customer.customer.name + ' - ' + customer.customer.number;
+                return customer.customer.name + ' - ' + customer.customer.number + ' (' + customer.customer.status + ')';
             }
             
             return customer.text;
@@ -412,6 +459,7 @@ $(document).ready(function() {
     $('#customer_select').on('change', function() {
         const selectedOption = $(this).find('option:selected');
         const customerId = selectedOption.val();
+        const customerStatus = selectedOption.data('status') || 'Normal';
         
         if (customerId) {
             // Fill customer details from data attributes
@@ -420,9 +468,14 @@ $(document).ready(function() {
             $('#customer_email').val(selectedOption.data('email') || '');
             $('#customer_gender').val(selectedOption.data('gender') || '');
             $('#customer_dob').val(selectedOption.data('dob') || '');
-            $('#customer_status').val(selectedOption.data('status') || '');
+            $('#customer_status').val(customerStatus);
             $('#selected_customer_id').val(customerId);
+            $('#customer_status_value').val(customerStatus);
+            
             $('#customerDetailsCard').slideDown();
+            
+            // Show/hide price type selection based on customer status
+            updatePriceTypeSection(customerStatus);
             
             // Clear any existing error
             $('#existing-customer-error').hide();
@@ -430,7 +483,14 @@ $(document).ready(function() {
         } else {
             clearCustomerDetails();
             $('#customerDetailsCard').slideUp();
+            $('#priceTypeSection').hide();
         }
+    });
+    
+    // Handle new customer status change
+    $('#new_customer_status').on('change', function() {
+        const status = $(this).val();
+        updatePriceTypeSection(status);
     });
     
     function clearCustomerDetails() {
@@ -441,6 +501,64 @@ $(document).ready(function() {
         $('#customer_dob').val('');
         $('#customer_status').val('');
         $('#selected_customer_id').val('');
+        $('#customer_status_value').val('Normal');
+    }
+    
+    function updatePriceTypeSection(customerStatus) {
+        if (customerStatus === 'Membership') {
+            $('#priceTypeSection').slideDown();
+            updateServicePrices();
+        } else {
+            $('#priceTypeSection').slideUp();
+            // Reset to regular prices
+            $('input[name="price_type"][value="regular"]').prop('checked', true);
+            updateServicePrices();
+        }
+    }
+    
+    // Handle price type radio button change
+    $('input[name="price_type"]').on('change', function() {
+        updateServicePrices();
+        updateSummary();
+    });
+    
+    function updateServicePrices() {
+        const customerStatus = getCustomerStatus();
+        const priceType = $('input[name="price_type"]:checked').val();
+        
+        $('.service-card').each(function() {
+            const regularPrice = $(this).find('.regular-price');
+            const membershipPrice = $(this).find('.membership-price');
+            const singlePrice = $(this).find('.single-price');
+            
+            if (customerStatus === 'Membership') {
+                regularPrice.show();
+                membershipPrice.show();
+                
+                if (priceType === 'membership') {
+                    singlePrice.hide();
+                    membershipPrice.removeClass('text-muted').addClass('text-success font-weight-bold');
+                    regularPrice.find('del').show();
+                } else {
+                    membershipPrice.hide();
+                    singlePrice.show().text('₹' + regularPrice.find('del').text().replace('₹', ''));
+                    regularPrice.find('del').show();
+                }
+            } else {
+                // Normal customer
+                regularPrice.hide();
+                membershipPrice.hide();
+                singlePrice.show().text('₹' + regularPrice.find('del').text().replace('₹', ''));
+            }
+        });
+    }
+    
+    function getCustomerStatus() {
+        if ($('#new-tab').hasClass('active')) {
+            return $('#new_customer_status').val();
+        } else {
+            return $('#customer_status_value').val();
+        }
     }
     
     // Tab switching logic
@@ -456,6 +574,9 @@ $(document).ready(function() {
             $('select[name="new_customer_gender"]').val('Male');
             $('select[name="new_customer_status"]').val('Normal');
             $('input[name="new_customer_dob"]').val(formattedDate);
+            
+            // Update price section based on default status
+            updatePriceTypeSection('Normal');
         } else if (targetTab === '#existing') {
             // Switching to existing customer tab
             // Clear new customer form
@@ -465,7 +586,14 @@ $(document).ready(function() {
             $('select[name="new_customer_gender"]').val('Male');
             $('select[name="new_customer_status"]').val('Normal');
             $('input[name="new_customer_dob"]').val(formattedDate);
+            
+            // Update price section based on selected customer or default
+            const selectedStatus = $('#customer_status_value').val();
+            updatePriceTypeSection(selectedStatus || 'Normal');
         }
+        
+        // Update service prices
+        updateServicePrices();
         
         // Clear all errors
         $('.alert-danger').hide();
@@ -525,18 +653,37 @@ $(document).ready(function() {
     // Update order summary
     function updateSummary() {
         let subtotal = 0;
+        let regularSubtotal = 0;
         let html = '';
         let itemCount = 0;
+        const customerStatus = getCustomerStatus();
+        const priceType = $('input[name="price_type"]:checked').val();
+        const isMembershipPrice = customerStatus === 'Membership' && priceType === 'membership';
         
         $('.product-checkbox:checked').each(function() {
             const id = $(this).val();
             const card = $(this).closest('.card-body');
             const name = card.find('.card-title').text().trim();
-            const priceText = card.find('.card-text strong').text().replace('₹','').trim();
-            const price = parseFloat(priceText) || 0;
+            
+            // Get prices
+            const regularPrice = parseFloat($(this).data('regular-price')) || 0;
+            const membershipPrice = parseFloat($(this).data('membership-price')) || 0;
+            
+            // Determine which price to use
+            let price = regularPrice;
+            let priceTypeText = 'Regular';
+            
+            if (isMembershipPrice) {
+                price = membershipPrice;
+                priceTypeText = 'Membership';
+            }
+            
             const qty = parseInt($(`.quantity-input[data-product="${id}"]`).val()) || 1;
             const itemTotal = price * qty;
+            const regularItemTotal = regularPrice * qty;
+            
             subtotal += itemTotal;
+            regularSubtotal += regularItemTotal;
             itemCount++;
             
             html += `
@@ -547,6 +694,11 @@ $(document).ready(function() {
                         </div>
                     </td>
                     <td class="text-center align-middle">${qty}</td>
+                    <td class="text-right align-middle">
+                        <span class="badge badge-${priceTypeText === 'Membership' ? 'warning' : 'info'}">
+                            ${priceTypeText}
+                        </span>
+                    </td>
                     <td class="text-right align-middle">₹${price.toFixed(2)}</td>
                     <td class="text-right align-middle font-weight-bold">₹${itemTotal.toFixed(2)}</td>
                 </tr>
@@ -554,7 +706,7 @@ $(document).ready(function() {
         });
         
         if (itemCount === 0) {
-            html = '<tr><td colspan="4" class="text-center py-3">No services selected</td></tr>';
+            html = '<tr><td colspan="5" class="text-center py-3">No services selected</td></tr>';
         }
         
         $('#summary-table').html(html);
@@ -563,11 +715,34 @@ $(document).ready(function() {
         // Calculate tax (currently 0%, but you can modify this)
         const taxRate = 0;
         const taxAmount = subtotal * taxRate;
+        
+        // Calculate discount for membership prices
+        let discountAmount = 0;
+        if (isMembershipPrice && regularSubtotal > 0) {
+            discountAmount = regularSubtotal - subtotal;
+        }
+        
         const totalAmount = subtotal + taxAmount;
         
         $('#tax-amount').text(taxAmount.toFixed(2));
+        
+        // Show/hide discount section
+        if (discountAmount > 0) {
+            $('#discount-section').show();
+            $('#discount-amount').text(discountAmount.toFixed(2));
+        } else {
+            $('#discount-section').hide();
+        }
+        
         $('#total-amount').text(totalAmount.toFixed(2));
         $('#total-words').text(numberToWords(totalAmount) + ' Only');
+        
+        // Update price type indicator
+        let priceTypeIndicator = 'Using regular prices';
+        if (isMembershipPrice) {
+            priceTypeIndicator = 'Using membership prices (discounted)';
+        }
+        $('#price-type-indicator').html('<i class="fas fa-info-circle"></i> ' + priceTypeIndicator);
     }
     
     // Number to words function
@@ -726,16 +901,22 @@ $(document).ready(function() {
             $('select[name="new_customer_status"]').val('Normal');
             $('input[name="new_customer_dob"]').val(formattedDate);
             
+            // Clear price type selection
+            $('#priceTypeSection').hide();
+            $('input[name="price_type"][value="regular"]').prop('checked', true);
+            
             // Clear services
             $('.product-checkbox').prop('checked', false).change();
             $('#serviceSearch').val('').trigger('keyup');
             
             // Clear comments
             $('textarea[name="comments"]').val('');
-            $('#invoiceNotes').val('');
             
             // Switch to existing customer tab
             $('#existing-tab').tab('show');
+            
+            // Update service prices
+            updateServicePrices();
             
             // Clear errors
             $('.alert').remove();
@@ -806,216 +987,96 @@ $(document).ready(function() {
 </script>
 
 <style>
-/* Responsive Design */
+/* Existing styles remain the same, add these new styles */
+
+/* Price styling */
+.regular-price del {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.membership-price {
+    font-size: 1rem;
+    color: #28a745;
+}
+
+.single-price {
+    font-size: 1rem;
+}
+
+/* Price type section styling */
+#priceTypeSection .alert-info {
+    background-color: #e7f3ff;
+    border-color: #b8daff;
+    color: #004085;
+}
+
+/* Badge styling for price types */
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+/* Discount section styling */
+#discount-section {
+    color: #28a745;
+}
+
+/* Price indicator styling */
+#price-type-indicator {
+    font-size: 0.8rem;
+    border-top: 1px dashed #dee2e6;
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* Price display in service cards */
+.price-container {
+    min-height: 50px;
+}
+
+/* Membership badge styling in select2 */
+.badge-warning, .badge-info {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    margin-left: 0.25rem;
+}
+
+/* Additional responsive styles for price display */
 @media (max-width: 768px) {
-    .card-header h6 {
-        font-size: 1rem;
+    .price-container {
+        min-height: 40px;
     }
     
-    .customer-option {
-        padding: 6px;
+    .regular-price del {
+        font-size: 0.8rem;
+    }
+    
+    .membership-price, .single-price {
         font-size: 0.9rem;
     }
     
-    .nav-tabs .nav-link {
-        padding: 0.5rem;
-        font-size: 0.85rem;
-    }
-    
-    .service-card .card-title {
+    #priceTypeSection .custom-control-label {
         font-size: 0.9rem;
     }
-    
-    .quantity-container {
-        width: 70px !important;
-    }
-    
-    .quantity-input {
-        font-size: 0.8rem;
-        padding: 0.25rem;
-    }
-    
-    .btn-lg {
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-    }
 }
 
-@media (max-width: 576px) {
-    .card-body {
-        padding: 1rem;
-    }
-    
-    .nav-tabs .nav-link {
-        font-size: 0.8rem;
-        padding: 0.4rem;
-    }
-    
-    .select2-container--default .select2-selection--single {
-        height: calc(2.25rem + 2px);
-    }
-    
-    .service-card {
-        margin-bottom: 0.5rem;
-    }
-    
-    .service-card .card-body {
-        padding: 0.75rem;
-    }
-    
-    .table th, .table td {
-        padding: 0.5rem;
-        font-size: 0.85rem;
-    }
+/* Highlight membership prices */
+.service-card .membership-price {
+    color: #28a745;
+    font-weight: bold;
 }
 
-/* Mobile-specific improvements */
-.mobile-optimized {
-    font-size: 14px;
-}
+/* Existing responsive styles remain... */
 
-/* Select2 mobile optimization */
-.select2-container--default .select2-selection--single {
-    border: 2px solid #ced4da;
-    border-radius: 0.375rem;
-    height: calc(2.5rem + 4px);
-    padding: 0.5rem;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: calc(2.5rem + 4px);
-}
-
-.select2-container--default .select2-selection--single.is-invalid {
-    border-color: #dc3545;
-}
-
-/* Customer option styling */
-.customer-option {
-    padding: 8px;
-    border-bottom: 1px solid #eee;
-    transition: background-color 0.2s;
-}
-
-.customer-option:last-child {
-    border-bottom: none;
-}
-
-.customer-option:hover {
-    background-color: #f8f9fa;
-}
-
-/* Card hover effects */
-.card.border-success {
-    border-color: #28a745 !important;
-    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+/* Ensure proper spacing for price type section */
+#priceTypeSection {
     transition: all 0.3s ease;
 }
 
-/* Tab styling */
-.nav-tabs {
-    border-bottom: 2px solid #dee2e6;
-}
-
-.nav-tabs .nav-link {
-    font-weight: 600;
-    border: none;
-    border-bottom: 3px solid transparent;
-    color: #6c757d;
-    transition: all 0.3s;
-}
-
-.nav-tabs .nav-link.active {
-    background-color: transparent;
-    color: #007bff;
-    border-bottom: 3px solid #007bff;
-}
-
-.nav-tabs .nav-link:hover:not(.active) {
-    color: #495057;
-    border-bottom: 3px solid rgba(0, 123, 255, 0.5);
-}
-
-/* Animation for customer details */
-#customerDetailsCard {
-    animation: fadeIn 0.3s ease;
-    border-left: 4px solid #007bff;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Disabled input styling */
-.quantity-input:disabled {
-    background-color: #f8f9fa;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-/* Service card hover effect */
-.service-card .card {
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-}
-
-.service-card .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-/* Search input focus */
-#serviceSearch:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-}
-
-/* Toast container */
-.toast-container {
-    z-index: 9999;
-}
-
-/* Touch-friendly buttons */
-.btn {
-    padding: 0.375rem 0.75rem;
-    touch-action: manipulation;
-}
-
-/* Ensure proper spacing on mobile */
-.mb-2-mobile {
-    margin-bottom: 0.5rem;
-}
-
-/* Improve form control sizing on mobile */
-.form-control, .form-select {
-    font-size: 16px; /* Prevents zoom on iOS */
-}
-
-/* Better table responsiveness */
-.table-responsive {
-    border-radius: 0.375rem;
-    border: 1px solid #dee2e6;
-}
-
-/* Card shadow on mobile */
-@media (max-width: 768px) {
-    .card {
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-}
-
-/* Improve button spacing on mobile */
-@media (max-width: 576px) {
-    .btn-lg {
-        width: 100%;
-        margin-bottom: 0.5rem;
-    }
-}
-
-/* Better badge spacing */
-.badge {
-    margin-bottom: 2px;
+/* Animation for price changes */
+.price-container span {
+    transition: all 0.3s ease;
 }
 </style>
 

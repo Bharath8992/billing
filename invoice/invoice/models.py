@@ -5,6 +5,7 @@ from django.db import models
 class Product(models.Model):
     services_name = models.CharField(max_length=255)
     services_price = models.IntegerField(max_length=255, default=1)
+    membership_price = models.IntegerField(max_length=255, default=1)
     services_duration = models.IntegerField(max_length=255, default=1)
     services_image = models.ImageField(upload_to='services_images/', blank=True, null=True)
     product_is_delete = models.BooleanField(default=False)
