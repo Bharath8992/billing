@@ -69,7 +69,7 @@
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
                     aria-expanded="true" aria-controls="collapseTwo">
                     <i class="fas fa-folder-open"></i>
-                    <span>Products</span>
+                    <span>Services</span>
                 </a>
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
@@ -93,6 +93,8 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="{% url 'create_customer' %}">Add</a>
                         <a class="collapse-item" href="{% url 'view_customer' %}">View</a>
+                        <a class="collapse-item" href="{% url 'download_customers' %}">Download all Customer</a>
+
                     </div>
                 </div>
             </li> 
@@ -108,7 +110,9 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="{% url 'create_invoice' %}">Add</a>
                         <a class="collapse-item" href="{% url 'view_invoice' %}">View</a>
-                        {% comment %} <a class="collapse-item" href="{% url 'download_all_invoice' %}">Download</a> {% endcomment %}
+                        <a class="collapse-item" href="{% url 'download_all_invoices' %}">Download</a>
+   
+
                         <a class="collapse-item" href="{% url 'delete_all_invoice' %}">Delete</a>
 
                     </div>
@@ -186,7 +190,7 @@
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Total products
+                                                Total Services
                                             </div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{total_product}}</div>
                                         </div>

@@ -42,5 +42,12 @@ urlpatterns = [
      path("expences/edit/<int:pk>/", views.edit_expences, name="edit_expences"),
      path("expences/delete/<int:pk>/", views.delete_expences, name="delete_expences"),
 
+     path('customers/download/', views.download_customers_csv, name='download_customers'),
+    
+     path('invoice/download/all/', views.download_all_invoices_csv, name='download_all_invoices'),
+     path('invoice/download/all/pdf/', views.download_all_invoices_pdf, name='download_all_invoices_pdf'),
+
+
+
      
 ]

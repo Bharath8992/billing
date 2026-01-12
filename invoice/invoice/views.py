@@ -13,6 +13,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from .models import Product, Customer, Invoice, InvoiceDetail
 from .forms import InvoiceForm, InvoiceDetailFormSet
+import csv
 # Create your views here.
 
 ADMIN_USERNAME = "admin"
@@ -1676,3 +1677,124 @@ def delete_expences(request, pk):
     return render(request, "invoice/delete_expences.html", context)
 
 
+@admin_required
+def download_customers_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="customers.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID',
+        'Customer Name',
+        'Gender',
+        'Date of Birth',
+        'Mobile Number',
+        'Email',
+        'Status',
+    ])
+
+    customers = Customer.objects.all()
+
+    for c in customers:
+        writer.writerow([
+            c.id,
+            c.customer_name,
+            c.customer_gender,
+            c.customer_dob,
+            c.customer_number,
+            c.customer_email,
+            c.customer_status,
+        ])
+
+    return response
+
+@admin_required
+def download_all_invoices_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="all_invoices.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Invoice ID',
+        'Invoice Date',
+        'Customer Name',
+        'Mobile',
+        'Email',
+        'Comments',
+        'Total Amount',
+        'Items',
+    ])
+
+    invoices = Invoice.objects.all().order_by('-id')
+
+    for invoice in invoices:
+        items = InvoiceDetail.objects.filter(invoice=invoice)
+        item_names = ", ".join([
+            f"{i.product.services_name} (Qty: {i.amount})"
+            for i in items if i.product
+        ])
+
+        writer.writerow([
+            invoice.id,
+            invoice.date,
+            invoice.customer,
+            invoice.contact,
+            invoice.email,
+            invoice.comments,
+            invoice.total,
+            item_names,
+        ])
+
+    return response
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from django.http import HttpResponse
+from datetime import datetime
+
+@admin_required
+def download_all_invoices_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="all_invoices.pdf"'
+
+    c = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(width / 2, height - 40, "All Invoices Report")
+
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(
+        width / 2,
+        height - 60,
+        f"Generated on {datetime.now().strftime('%d-%b-%Y %I:%M %p')}"
+    )
+
+    y = height - 90
+
+    invoices = Invoice.objects.all().order_by('-id')
+
+    for invoice in invoices:
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(40, y, f"Invoice #{invoice.id} | {invoice.customer} | ₹{invoice.total}")
+        y -= 14
+
+        c.setFont("Helvetica", 9)
+        details = InvoiceDetail.objects.filter(invoice=invoice)
+        for d in details:
+            if d.product:
+                c.drawString(
+                    60,
+                    y,
+                    f"- {d.product.services_name} (Qty: {d.amount})"
+                )
+                y -= 12
+
+        y -= 10
+
+        if y < 60:
+            c.showPage()
+            y = height - 60
+
+    c.save()
+    return response
