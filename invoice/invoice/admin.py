@@ -18,6 +18,10 @@ class InvoiceDetailAdmin(admin.ModelAdmin):
 
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = ['id', 'date', 'customer', 'total']
+    
+class ExpencesAdmin(admin.ModelAdmin):
+    list_display = ['id', 'staf_name', 'amount',
+                'status']
 
 
 # Register your models here.
@@ -25,3 +29,4 @@ admin.site.register(Product, ProductAdmin)
 admin.site.register(Customer, CustomerAdmin)
 admin.site.register(InvoiceDetail, InvoiceDetailAdmin)
 admin.site.register(Invoice, InvoiceAdmin)
+admin.site.register(Expences, ExpencesAdmin)

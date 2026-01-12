@@ -115,6 +115,24 @@
                 </div>
             </li>
 
+
+            <li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse"
+       data-target="#collapseExpences" aria-expanded="true"
+       aria-controls="collapseExpences">
+        <i class="fas fa-receipt"></i>
+        <span>Expences</span>
+    </a>
+
+    <div id="collapseExpences" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <a class="collapse-item" href="{% url 'create_expences' %}">Add</a>
+            <a class="collapse-item" href="{% url 'view_expences' %}">View</a>
+        </div>
+    </div>
+</li>
+
+
             <!-- Divider -->
             <hr class="sidebar-divider">
 

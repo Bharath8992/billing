@@ -35,4 +35,12 @@ urlpatterns = [
      path('search-customers-ajax/', views.search_customers_ajax, name='search_customers_ajax'),
      path('get-customer-details-ajax/', views.get_customer_details_ajax, name='get_customer_details_ajax'),
      
+     
+     
+     path("expences/create/", views.create_expences, name="create_expences"),
+     path("expences/",views.view_expences, name="view_expences"),
+     path("expences/edit/<int:pk>/", views.edit_expences, name="edit_expences"),
+     path("expences/delete/<int:pk>/", views.delete_expences, name="delete_expences"),
+
+     
 ]

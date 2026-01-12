@@ -62,3 +62,20 @@ class InvoiceDetail(models.Model):
     def get_total_bill(self):
         total = float(self.product.product_price) * float(self.amount)
         return total
+
+
+class Expences(models.Model):
+    ACTIVITY_CHOICES = (
+        ('Active', 'Active'),
+        ('Inactive', 'Inactive'),
+        
+    )
+    
+    staf_name = models.CharField(max_length=255)
+    amount = models.IntegerField(max_length=255, default=1)
+    description = models.CharField(max_length=255)
+    status = models.CharField(max_length=50, choices=ACTIVITY_CHOICES)
+    expence_is_delete = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.staf_name)

@@ -45,6 +45,35 @@ class ProductForm(forms.ModelForm):
         }
 
 
+
+class ExpencesForm(forms.ModelForm):
+    class Meta:
+        model = Expences
+        fields = [
+            'staf_name',
+            'amount',
+            'description',
+            'status',
+        ]
+        widgets = {
+            'staf_name': forms.TextInput(attrs={
+                'class': 'form-control rounded-pill',
+                'placeholder': 'Enter name of the Staff',
+            }),
+            'amount': forms.NumberInput(attrs={
+                'class': 'form-control rounded-pill',
+                'placeholder': 'Enter the amount',
+            }),
+            'description': forms.TextInput(attrs={
+                'class': 'form-control rounded-pill',
+                'placeholder': 'Enter the description',
+            }),
+            'status': forms.Select(attrs={
+                'class': 'form-control rounded-pill',
+            }),
+        }
+
+
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
@@ -149,3 +178,5 @@ class excelUploadForm(forms.Form):
 
 
 InvoiceDetailFormSet = formset_factory(InvoiceDetailForm, extra=1)
+
+

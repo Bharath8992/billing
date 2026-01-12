@@ -1,0 +1,79 @@
+{% extends "invoice/base/base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-12 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <label class="m-0 font-weight-bold text-primary">
+                    {% if editing %}Edit{% else %}Create{% endif %} Expences
+                </label>
+            </div>
+
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data"> 
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Staff Name -->
+                    <div class="mb-3">
+                        <label class="form-label" for="services_name">Staff Name</label>
+                        {{ form.staf_name }}
+                        {% if form.staf_name.errors %}
+                            <div class="text-danger">
+                                {{ form.staf_name.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}
+                            <div class="text-danger">
+                                {{ form.amount.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">
+                                {{ form.description.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Status -->
+                    <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="text-danger">
+                            {{ form.status.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+
+                    <!-- Submit -->
+                    <div class="mb-3">
+                        <input class="btn btn-info" type="submit"
+                               value="{% if editing %}Update{% else %}Create{% endif %} Expences">
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

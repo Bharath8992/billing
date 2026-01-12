@@ -179,30 +179,6 @@ def create_product(request):
     }
     return render(request, "invoice/create_product.html", context)
 
-@admin_required
-def crate_product(request):
-    total_product = Product.objects.count()
-    # total_customer = Customer.objects.count()
-    total_invoice = Invoice.objects.count()
-    total_income = getTotalIncome()
-
-    product = ProductForm()
-
-    if request.method == "POST":
-        product = ProductForm(request.POST)
-        if product.is_valid():
-            product.save()
-            return redirect("view_product")
-
-    context = {
-        "total_product": total_product,
-        # "total_customer": total_customer,
-        "total_invoice": total_invoice,
-        "total_income": total_income,
-        "product": product,
-    }
-
-    return render(request, "invoice/create_product.html", context)
 
 @admin_required
 def view_product(request):
@@ -1611,3 +1587,92 @@ def invoice(request):
             "customers": customers,
         }
     return render(request, "invoice/create_invoice.html", context)
+
+@admin_required
+def create_expences(request):
+    total_product = Product.objects.count()
+    total_invoice = Invoice.objects.count()
+    total_income = getTotalIncome()
+
+    if request.method == "POST":
+        form = ExpencesForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("view_expences")
+    else:
+        form = ExpencesForm()
+
+    context = {
+        "total_product": total_product,
+        "total_invoice": total_invoice,
+        "total_income": total_income,
+        "form": form,
+    }
+    return render(request, "invoice/create_expences.html", context)
+
+
+@admin_required
+def view_expences(request):
+    total_product = Product.objects.count()
+    total_invoice = Invoice.objects.count()
+    total_income = getTotalIncome()
+
+    expences = Expences.objects.filter(expence_is_delete=False)
+
+    context = {
+        "total_product": total_product,
+        "total_invoice": total_invoice,
+        "total_income": total_income,
+        "expences": expences,
+    }
+    return render(request, "invoice/view_expences.html", context)
+
+
+@admin_required
+def edit_expences(request, pk):
+    total_product = Product.objects.count()
+    total_invoice = Invoice.objects.count()
+    total_income = getTotalIncome()
+
+    expences_instance = Expences.objects.get(id=pk)
+
+    if request.method == "POST":
+        form = ExpencesForm(request.POST, instance=expences_instance)
+        if form.is_valid():
+            form.save()
+            return redirect("view_expences")
+    else:
+        form = ExpencesForm(instance=expences_instance)
+
+    context = {
+        "total_product": total_product,
+        "total_invoice": total_invoice,
+        "total_income": total_income,
+        "form": form,
+        "editing": True,
+    }
+    return render(request, "invoice/create_expences.html", context)
+
+
+@admin_required
+def delete_expences(request, pk):
+    total_product = Product.objects.count()
+    total_invoice = Invoice.objects.count()
+    total_income = getTotalIncome()
+
+    expences = Expences.objects.get(id=pk)
+
+    if request.method == "POST":
+        expences.expence_is_delete = True
+        expences.save()
+        return redirect("view_expences")
+
+    context = {
+        "total_product": total_product,
+        "total_invoice": total_invoice,
+        "total_income": total_income,
+        "expences": expences,
+    }
+    return render(request, "invoice/delete_expences.html", context)
+
+
