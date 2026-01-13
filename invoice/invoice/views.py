@@ -734,41 +734,37 @@ from utils.adminhandler import admin_required
 @admin_required
 def create_invoice(request):
     products = Product.objects.all()
-    customers = Customer.objects.all()  # Add this line for customer selection
+    customers = Customer.objects.all()
 
-    # ✅ HANDLE GET REQUEST (VERY IMPORTANT)
     if request.method == "GET":
         return render(request, "invoice/create_invoice.html", {
             "products": products,
             "total_product": products.count(),
             "total_invoice": Invoice.objects.count(),
-            "customers": customers,  # Add this to context
+            "customers": customers,
         })
 
-    # ================= POST REQUEST =================
     # ================= CUSTOMER =====================
     selected_customer_id = request.POST.get("selected_customer_id")
-
     new_name = request.POST.get("new_customer_name", "").strip()
     new_mobile = request.POST.get("new_customer_mobile", "").strip()
     new_email = request.POST.get("new_customer_email", "").strip()
     new_gender = request.POST.get("new_customer_gender", "Male")
     new_dob = request.POST.get("new_customer_dob")
     new_status = request.POST.get("new_customer_status", "Normal")
+    
+    # Get price type from form (important!)
+    price_type = request.POST.get("price_type", "regular")
 
     customer = None
 
-    # EXISTING CUSTOMER
     if selected_customer_id:
         customer = Customer.objects.filter(id=selected_customer_id).first()
-
-    # NEW CUSTOMER
     elif new_name and new_mobile:
         dob = date.today()
         if new_dob:
             dob = datetime.strptime(new_dob, "%Y-%m-%d").date()
 
-        # Check if customer already exists with this mobile
         existing_customer = Customer.objects.filter(
             customer_number=new_mobile
         ).first()
@@ -807,36 +803,57 @@ def create_invoice(request):
 
     items = []
     total = 0
+    regular_total = 0  # To calculate discount
 
     for index, pid in enumerate(product_ids, start=1):
         product = Product.objects.get(id=pid)
         qty = int(request.POST.get(f"quantity_{pid}", 1))
-        price = product.services_price
+        
+        # DETERMINE WHICH PRICE TO USE
+        if price_type == 'membership' and customer.customer_status == 'Membership':
+            # Use membership price if available
+            price = product.membership_price
+            regular_price = product.services_price
+        else:
+            # Use regular price
+            price = product.services_price
+            regular_price = product.services_price
+        
         subtotal = qty * price
+        regular_subtotal = qty * regular_price
         total += subtotal
+        regular_total += regular_subtotal
 
+        # Create invoice detail
         InvoiceDetail.objects.create(
             invoice=invoice,
             product=product,
             amount=qty
         )
 
+        # Prepare display price for PDF
+        if price_type == 'membership' and customer.customer_status == 'Membership':
+            # Show both prices: Regular (strikethrough) and Membership
+            price_display = f"{regular_price:.2f} → {price:.2f}"
+        else:
+            price_display = f"{price:.2f}"
+
         items.append([
             index,
             product.services_name,
-            "9983",  # HSN/SAC code
+            "9983",
             str(qty),
             "pcs",
-            f"{price:.2f}",
-            "0.00",  # Discount
-            "0.00",  # Tax %
+            price_display,  # Updated to show proper pricing
+            "0.00",
+            "0.00",
             f"{subtotal:.2f}",
         ])
 
     invoice.total = total
     invoice.save()
 
-    # ================= PDF GENERATION (UPDATED STRUCTURE) =================
+    # ================= PDF GENERATION (UPDATED) =================
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -882,6 +899,19 @@ def create_invoice(request):
     y -= 12
     c.drawString(30, y, f"Email: {invoice.email}")
     y -= 12
+    
+    # Show customer status and price type
+    c.setFont("Helvetica-Bold", 9)
+    if customer.customer_status == 'Membership':
+        status_text = f"Status: {customer.customer_status}"
+        if price_type == 'membership':
+            status_text += " (Membership Price Applied)"
+        else:
+            status_text += " (Regular Price)"
+        c.drawString(30, y, status_text)
+        y -= 12
+    
+    c.setFont("Helvetica", 9)
     c.drawString(30, y, f"Comments: {invoice.comments}")
 
     # === Invoice Info ===
@@ -894,7 +924,7 @@ def create_invoice(request):
     c.drawString(info_x, y, f"Invoice No: {invoice.id}")
     y -= 12
     
-    # Handle created_at field (use current date if not available)
+    # Handle created_at field
     invoice_date = ""
     if hasattr(invoice, 'created_at') and invoice.created_at:
         invoice_date = invoice.created_at.strftime('%d-%b-%Y')
@@ -932,10 +962,28 @@ def create_invoice(request):
             y = height - 100
             c.setFont("Helvetica", 9)
 
+    # === Calculate Discount ===
+    discount = regular_total - total if regular_total > total else 0
+    
     # === Total ===
     c.setFont("Helvetica-Bold", 11)
     c.drawString(120, y - 20, "Total")
     c.drawRightString(width - 40, y - 20, f"{invoice.total:,.2f}")
+    
+    # Show discount if applicable
+    if discount > 0:
+        c.setFont("Helvetica", 9)
+        c.drawString(120, y - 35, "Membership Discount:")
+        c.setFillColor(colors.green)
+        c.drawRightString(width - 40, y - 35, f"-₹{discount:,.2f}")
+        c.setFillColor(colors.black)
+        
+        # Show original total before discount
+        c.drawString(120, y - 50, "Original Amount:")
+        c.setFillColor(colors.grey)
+        c.drawRightString(width - 40, y - 50, f"₹{regular_total:,.2f}")
+        c.setFillColor(colors.black)
+        y -= 35  # Adjust for extra lines
 
     # === Amount in Words ===
     c.setFont("Helvetica", 9)
@@ -980,7 +1028,6 @@ def create_invoice(request):
         as_attachment=True,
         filename=f"Invoice_{invoice.id}.pdf"
     )
-
 
 # AJAX view for auto-filling customer details
 @admin_required
