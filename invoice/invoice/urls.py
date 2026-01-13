@@ -46,6 +46,14 @@ urlpatterns = [
     
      path('invoice/download/all/', views.download_all_invoices_csv, name='download_all_invoices'),
      path('invoice/download/all/pdf/', views.download_all_invoices_pdf, name='download_all_invoices_pdf'),
+     
+     
+     path('stock/', views.view_stock, name='view_stock'),
+     path('stock/create/', views.create_stock, name='create_stock'),
+     path('stock/edit/<int:pk>/', views.edit_stock, name='edit_stock'),
+     path('stock/delete/<int:pk>/', views.delete_stock, name='delete_stock'),
+     path('stock/download/', views.download_stock, name='download_stock'),
+
 
 
 

@@ -1,0 +1,43 @@
+{% extends "invoice/base/base.html" %}
+{% block content %}
+
+<div class="row">
+    <div class="col-xl-12 col-lg-7">
+        <div class="card shadow mb-4">
+
+            <div class="card-header py-3">
+                <label class="m-0 font-weight-bold text-primary">
+                    {% if editing %}Edit{% else %}Create{% endif %} Stock
+                </label>
+            </div>
+
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label>Stock Name</label>
+                        {{ form.name }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Quantity</label>
+                        {{ form.quantity }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Price</label>
+                        {{ form.price }}
+                    </div>
+
+                    <button type="submit" class="btn btn-info">
+                        {% if editing %}Update{% else %}Create{% endif %} Stock
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

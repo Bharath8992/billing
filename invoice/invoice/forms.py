@@ -180,3 +180,22 @@ class excelUploadForm(forms.Form):
 InvoiceDetailFormSet = formset_factory(InvoiceDetailForm, extra=1)
 
 
+class StockForm(forms.ModelForm):
+    class Meta:
+        model = Stock
+        fields = ['name', 'quantity', 'price']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control rounded-pill',
+                'placeholder': 'Enter the name of stock',
+            }),
+            'quantity': forms.NumberInput(attrs={
+                'class': 'form-control rounded-pill',
+                'placeholder': 'Enter the quantity',
+            }),
+            'price': forms.NumberInput(attrs={
+                'class': 'form-control rounded-pill',
+                'placeholder': 'Enter the price',
+            }),
+        }
+

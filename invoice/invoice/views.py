@@ -1798,3 +1798,108 @@ def download_all_invoices_pdf(request):
 
     c.save()
     return response
+
+
+
+@admin_required
+def view_stock(request):
+    total_product = Product.objects.count()
+    total_invoice = Invoice.objects.count()
+    total_income = getTotalIncome()
+
+    stock = Stock.objects.filter(expence_is_delete=False)
+
+    context = {
+        "total_product": total_product,
+        "total_invoice": total_invoice,
+        "total_income": total_income,
+        "stock": stock,
+    }
+    return render(request, "invoice/view_stock.html", context)
+
+@admin_required
+def create_stock(request):
+    total_product = Product.objects.count()
+    total_invoice = Invoice.objects.count()
+    total_income = getTotalIncome()
+
+    if request.method == "POST":
+        form = StockForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("view_stock")
+    else:
+        form = StockForm()
+
+    context = {
+        "total_product": total_product,
+        "total_invoice": total_invoice,
+        "total_income": total_income,
+        "form": form,
+    }
+    return render(request, "invoice/create_stock.html", context)
+
+@admin_required
+def edit_stock(request, pk):
+    total_product = Product.objects.count()
+    total_invoice = Invoice.objects.count()
+    total_income = getTotalIncome()
+
+    stock_instance = Stock.objects.get(id=pk)
+
+    if request.method == "POST":
+        form = StockForm(request.POST, instance=stock_instance)
+        if form.is_valid():
+            form.save()
+            return redirect("view_stock")
+    else:
+        form = StockForm(instance=stock_instance)
+
+    context = {
+        "total_product": total_product,
+        "total_invoice": total_invoice,
+        "total_income": total_income,
+        "form": form,
+        "editing": True,
+    }
+    return render(request, "invoice/create_stock.html", context)
+
+
+@admin_required
+def delete_stock(request, pk):
+    stock = Stock.objects.get(id=pk)
+
+    if request.method == "POST":
+        stock.expence_is_delete = True
+        stock.save()
+        return redirect("view_stock")
+
+    return render(request, "invoice/delete_stock.html", {
+        "stock": stock
+    })
+
+
+
+
+@admin_required
+def download_stock(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="stock_list.csv"'
+
+    writer = csv.writer(response)
+
+    # Header row
+    writer.writerow(['ID', 'Item Name', 'Quantity', 'Price'])
+
+    # Data rows
+    stock_items = Stock.objects.filter(expence_is_delete=False)
+
+    for stock in stock_items:
+        writer.writerow([
+            stock.id,
+            stock.name,
+            stock.quantity,
+            stock.price,
+        ])
+
+    return response

@@ -79,3 +79,13 @@ class Expences(models.Model):
 
     def __str__(self):
         return str(self.staf_name)
+    
+
+class Stock(models.Model):
+    name = models.CharField(max_length=255)
+    quantity = models.IntegerField(default=1)
+    price = models.IntegerField(default=1)   # ✅ lowercase
+    expence_is_delete = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name

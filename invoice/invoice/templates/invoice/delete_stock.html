@@ -1,0 +1,49 @@
+{% extends "invoice/base/base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-12 col-lg-7">
+        <div class="card shadow mb-4">
+
+            <!-- Header -->
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <label class="m-0 font-weight-bold text-primary">Confirm</label>
+            </div>
+
+            <!-- Body -->
+            <form method="post">
+                {% csrf_token %}
+                <div class="card-body">
+                    <h5 style="text-align: center; padding-bottom: 1em">
+                        <b>Are you sure you want to delete this stock?</b>
+                    </h5>
+
+                    <p style="text-align:center;">
+                        <strong>{{ stock.name }}</strong>
+                    </p>
+
+                    <div class="row" style="width: 50%; margin: auto">
+                        <div class="col">
+                            <a href="{% url 'view_stock' %}"
+                               class="btn btn-success"
+                               style="width: 100%; border-radius: 0">
+                                Cancel
+                            </a>
+                        </div>
+
+                        <div class="col">
+                            <button type="submit"
+                                    class="btn btn-danger"
+                                    style="width: 100%; border-radius: 0">
+                                Yes
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
