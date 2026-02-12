@@ -24,3 +24,5 @@ reportlab==3.6.12
 qrcode[pil]
 num2words
 whitenoise
+psycopg2-binary==2.9.9
+
