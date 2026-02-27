@@ -13,6 +13,24 @@
             <!-- Card Body -->
             <div class="card-body">
 
+                <!-- STATUS TABS -->
+<div class="mb-3">
+    <a href="{% url 'customer_list' %}" 
+       class="btn btn-secondary {% if not request.GET.status %}active{% endif %}">
+        All Customers
+    </a>
+
+    <a href="{% url 'customer_list' %}?status=Normal" 
+       class="btn btn-info {% if request.GET.status == 'Normal' %}active{% endif %}">
+        Normal Customers
+    </a>
+
+    <a href="{% url 'customer_list' %}?status=Membership" 
+       class="btn btn-warning {% if request.GET.status == 'Membership' %}active{% endif %}">
+        Membership Customers
+    </a>
+</div>
+
                 <!-- 🔍 SEARCH BAR -->
                 <form method="get" class="mb-3">
                     <div class="input-group">
@@ -37,10 +55,10 @@
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Gender</th>
-                                <th>Date of birth</th>
+                                {% comment %} <th>Date of birth</th> {% endcomment %}
                                 <th>Status</th>
                                 <th>Number</th>
-                                <th>Email</th>
+                                {% comment %} <th>Email</th> {% endcomment %}
                                 <th>Edit</th>
                                 <th>Delete</th>
                             </tr>
@@ -52,10 +70,10 @@
                                 <td style="padding: 0.45em;">{{ i.id }}</td>
                                 <td style="padding: 0.45em;">{{ i.customer_name }}</td>
                                 <td style="padding: 0.45em;">{{ i.customer_gender }}</td>
-                                <td style="padding: 0.45em;">{{ i.customer_dob }}</td>
+                                {% comment %} <td style="padding: 0.45em;">{{ i.customer_dob }}</td> {% endcomment %}
                                 <td style="padding: 0.45em;">{{ i.customer_status }}</td>
                                 <td style="padding: 0.45em;">{{ i.customer_number }}</td>
-                                <td style="padding: 0.45em;">{{ i.customer_email }}</td>
+                                {% comment %} <td style="padding: 0.45em;">{{ i.customer_email }}</td> {% endcomment %}
 
                                 <td style="padding: 0;">
                                     <a href="{% url 'edit_customer' i.id %}"

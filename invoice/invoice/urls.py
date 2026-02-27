@@ -15,6 +15,7 @@ urlpatterns = [
          name='upload_product_excel'),
     path('create_customer', views.create_customer, name='create_customer'),
     path('view_customer/', views.view_customer, name='view_customer'),
+    path('customer_list/', views.customer_list, name='customer_list'),
     path('edit_customer/<int:pk>', views.edit_customer, name='edit_customer'),
     path('delete_customer/<int:pk>/', views.delete_customer, name='delete_customer'),
 

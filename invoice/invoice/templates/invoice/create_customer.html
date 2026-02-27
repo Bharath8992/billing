@@ -45,7 +45,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="mb-3">
+                    {% comment %} <div class="mb-3">
                         <label class="form-label">Date of Birth</label>
                         {{ customer.customer_dob }}
                         {% if customer.customer_dob.errors %}
@@ -53,7 +53,7 @@
                                 {{ customer.customer_dob.errors.0 }}
                             </div>
                         {% endif %}
-                    </div>
+                    </div> {% endcomment %}
 
                     <div class="mb-3">
                         <label class="form-label">Customer Number</label>
@@ -65,7 +65,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="mb-3">
+                    {% comment %} <div class="mb-3">
                         <label class="form-label">Customer Email</label>
                         {{ customer.customer_email }}
                         {% if customer.customer_email.errors %}
@@ -73,7 +73,7 @@
                                 {{ customer.customer_email.errors.0 }}
                             </div>
                         {% endif %}
-                    </div>
+                    </div> {% endcomment %}
 
                     <div class="mb-3">
                         <label class="form-label">Select Status</label>

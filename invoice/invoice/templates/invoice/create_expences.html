@@ -6,7 +6,7 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                 <label class="m-0 font-weight-bold text-primary">
-                    {% if editing %}Edit{% else %}Create{% endif %} Expences
+                    {% if editing %}Edit{% else %}Create{% endif %} Expenses
                 </label>
             </div>
 
@@ -20,55 +20,91 @@
                         </div>
                     {% endif %}
 
-                    <!-- Staff Name -->
-                    <div class="mb-3">
-                        <label class="form-label" for="services_name">Staff Name</label>
-                        {{ form.staf_name }}
-                        {% if form.staf_name.errors %}
-                            <div class="text-danger">
-                                {{ form.staf_name.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Amount -->
-                    <div class="mb-3">
-                        <label class="form-label">Amount</label>
-                        {{ form.amount }}
-                        {% if form.amount.errors %}
-                            <div class="text-danger">
-                                {{ form.amount.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Description -->
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        {{ form.description }}
-                        {% if form.description.errors %}
-                            <div class="text-danger">
-                                {{ form.description.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Status -->
-                    <div class="mb-3">
-                    <label class="form-label">Status</label>
-                    {{ form.status }}
-                    {% if form.status.errors %}
-                        <div class="text-danger">
-                            {{ form.status.errors }}
+                    <div class="row">
+                        <!-- Staff Name -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label font-weight-bold" for="staf_name">
+                                <i class="fas fa-user mr-1"></i>Staff Name *
+                            </label>
+                            {{ form.staf_name }}
+                            {% if form.staf_name.errors %}
+                                <div class="text-danger small">
+                                    {{ form.staf_name.errors }}
+                                </div>
+                            {% endif %}
                         </div>
-                    {% endif %}
-                </div>
 
+                        <!-- Amount -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label font-weight-bold" for="amount">
+                                <i class="fas fa-rupee-sign mr-1"></i>Amount (₹) *
+                            </label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">₹</span>
+                                </div>
+                                {{ form.amount }}
+                            </div>
+                            {% if form.amount.errors %}
+                                <div class="text-danger small">
+                                    {{ form.amount.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
 
-                    <!-- Submit -->
-                    <div class="mb-3">
-                        <input class="btn btn-info" type="submit"
-                               value="{% if editing %}Update{% else %}Create{% endif %} Expences">
+                        <!-- Category (New Field) -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label font-weight-bold" for="category">
+                                <i class="fas fa-tag mr-1"></i>Category
+                            </label>
+                            {{ form.category }}
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> 
+                                e.g., Salary, Rent, Utilities, Marketing, Equipment, etc.
+                            </small>
+                            {% if form.category.errors %}
+                                <div class="text-danger small">
+                                    {{ form.category.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Status -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label font-weight-bold" for="status">
+                                <i class="fas fa-toggle-on mr-1"></i>Status *
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="text-danger small">
+                                    {{ form.status.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12 mb-3">
+                            <label class="form-label font-weight-bold" for="description">
+                                <i class="fas fa-align-left mr-1"></i>Description
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">
+                                    {{ form.description.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-info px-4">
+                            <i class="fas fa-save mr-2"></i>
+                            {% if editing %}Update{% else %}Create{% endif %} Expenses
+                        </button>
+                        <a href="{% url 'view_expences' %}" class="btn btn-secondary px-4 ml-2">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </a>
                     </div>
 
                 </form>

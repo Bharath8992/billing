@@ -5,7 +5,8 @@
     <div class="col-xl-12 col-lg-7">
         <div class="card shadow mb-4">
 
-            <div class="card-header py-3">
+            <div class="card-header py-3 d-flex align-items-center">
+                <i class="fas fa-boxes mr-2"></i>
                 <label class="m-0 font-weight-bold text-primary">
                     {% if editing %}Edit{% else %}Create{% endif %} Stock
                 </label>
@@ -15,24 +16,85 @@
                 <form method="post">
                     {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label>Stock Name</label>
-                        {{ form.name }}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Stock Name -->
+                        <div class="col-md-6 mb-3">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-tag mr-1"></i>Stock Name *
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small">
+                                    {{ form.name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Category (New Field) -->
+                        <div class="col-md-6 mb-3">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-folder mr-1"></i>Category
+                            </label>
+                            {{ form.category }}
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> 
+                                e.g., Electronics, Furniture, Stationery, Consumables, etc.
+                            </small>
+                            {% if form.category.errors %}
+                                <div class="text-danger small">
+                                    {{ form.category.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Quantity -->
+                        <div class="col-md-6 mb-3">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-sort-amount-up mr-1"></i>Quantity *
+                            </label>
+                            {{ form.quantity }}
+                            {% if form.quantity.errors %}
+                                <div class="text-danger small">
+                                    {{ form.quantity.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Price -->
+                        <div class="col-md-6 mb-3">
+                            <label class="font-weight-bold">
+                                <i class="fas fa-rupee-sign mr-1"></i>Price (₹) *
+                            </label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">₹</span>
+                                </div>
+                                {{ form.price }}
+                            </div>
+                            {% if form.price.errors %}
+                                <div class="text-danger small">
+                                    {{ form.price.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label>Quantity</label>
-                        {{ form.quantity }}
+                    <!-- Submit Buttons -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-info px-4">
+                            <i class="fas fa-save mr-2"></i>
+                            {% if editing %}Update{% else %}Create{% endif %} Stock
+                        </button>
+                        <a href="{% url 'view_stock' %}" class="btn btn-secondary px-4 ml-2">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </a>
                     </div>
-
-                    <div class="mb-3">
-                        <label>Price</label>
-                        {{ form.price }}
-                    </div>
-
-                    <button type="submit" class="btn btn-info">
-                        {% if editing %}Update{% else %}Create{% endif %} Stock
-                    </button>
                 </form>
             </div>
 

@@ -29,9 +29,9 @@ class Customer(models.Model):
     
     customer_name = models.CharField(max_length=255)
     customer_gender = models.CharField(max_length=50, choices=GENDER_CHOICES)
-    customer_dob = models.DateField()
+    # customer_dob = models.DateField()
     customer_number = models.CharField(max_length=15, unique=True)
-    customer_email = models.EmailField(blank=True, null=True)
+    # customer_email = models.EmailField(blank=True, null=True)
     customer_status = models.CharField(max_length=50, choices=STATUS_CHOICES)
 
     def __str__(self):
@@ -39,13 +39,26 @@ class Customer(models.Model):
 
 
 class Invoice(models.Model):
-    date = models.DateField(auto_now_add=True)
+    # date = models.DateField(auto_now_add=True)
     customer = models.TextField(default='')
     contact = models.CharField(
         max_length=255, default='', blank=True, null=True)
-    email = models.EmailField(default='', blank=True, null=True)
+    # email = models.EmailField(default='', blank=True, null=True)
     comments = models.TextField(default='', blank=True, null=True)
     total = models.FloatField(default=0)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    balance_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_given = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    change_returned = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('UNPAID', 'Unpaid'),
+            ('PARTIAL', 'Partially Paid'),
+            ('PAID', 'Paid')
+        ],
+        default='UNPAID'
+    )
 
     def __str__(self):
         return str(self.id)
@@ -73,6 +86,7 @@ class Expences(models.Model):
     
     staf_name = models.CharField(max_length=255)
     amount = models.IntegerField(max_length=255, default=1)
+    category = models.CharField(max_length=255, blank=True, null=True)
     description = models.CharField(max_length=255)
     status = models.CharField(max_length=50, choices=ACTIVITY_CHOICES)
     expence_is_delete = models.BooleanField(default=False)
@@ -85,6 +99,7 @@ class Stock(models.Model):
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=1)
     price = models.IntegerField(default=1)   # ✅ lowercase
+    category = models.CharField(max_length=100, blank=True, null=True)  # New category field
     expence_is_delete = models.BooleanField(default=False)
 
     def __str__(self):

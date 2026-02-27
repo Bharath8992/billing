@@ -9,7 +9,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ['id', 'customer_name',
-                    'customer_gender', 'customer_dob', 'customer_status']
+                    'customer_gender',  'customer_status']
 
 
 class InvoiceDetailAdmin(admin.ModelAdmin):
@@ -17,7 +17,7 @@ class InvoiceDetailAdmin(admin.ModelAdmin):
 
 
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'date', 'customer', 'total']
+    list_display = ['id',  'customer', 'total']
     
 class ExpencesAdmin(admin.ModelAdmin):
     list_display = ['id', 'staf_name', 'amount',

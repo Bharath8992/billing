@@ -45,44 +45,46 @@ class ProductForm(forms.ModelForm):
         }
 
 
+from django import forms
+from .models import Expences
 
 class ExpencesForm(forms.ModelForm):
     class Meta:
         model = Expences
-        fields = [
-            'staf_name',
-            'amount',
-            'description',
-            'status',
-        ]
+        fields = ['staf_name', 'amount', 'description', 'category', 'status']
         widgets = {
             'staf_name': forms.TextInput(attrs={
-                'class': 'form-control rounded-pill',
-                'placeholder': 'Enter name of the Staff',
+                'class': 'form-control',
+                'placeholder': 'Enter staff name'
             }),
             'amount': forms.NumberInput(attrs={
-                'class': 'form-control rounded-pill',
-                'placeholder': 'Enter the amount',
+                'class': 'form-control',
+                'placeholder': 'Enter amount'
             }),
-            'description': forms.TextInput(attrs={
-                'class': 'form-control rounded-pill',
-                'placeholder': 'Enter the description',
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Enter description'
+            }),
+            'category': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Salary, Rent, Utilities, Marketing, etc.'
             }),
             'status': forms.Select(attrs={
-                'class': 'form-control rounded-pill',
+                'class': 'form-control'
             }),
         }
-
-
+        
+        
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = [
             'customer_name',
             'customer_gender',
-            'customer_dob',
+            # 'customer_dob',
             'customer_number',
-            'customer_email',
+            # 'customer_email',
             'customer_status'
         ]
         widgets = {
@@ -125,7 +127,7 @@ class InvoiceForm(forms.ModelForm):
             'customer',
             'comments',
             'contact',
-            'email',
+            # 'email',
         ]
         widgets = {
             'customer': forms.TextInput(attrs={
@@ -138,11 +140,11 @@ class InvoiceForm(forms.ModelForm):
                 'id': 'invoice_contact',
                 'placeholder': 'Enter contact of the customer',
             }),
-            'email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'id': 'invoice_email',
-                'placeholder': 'Enter email of the customer',
-            }),
+            # 'email': forms.EmailInput(attrs={
+            #     'class': 'form-control',
+            #     'id': 'invoice_email',
+            #     'placeholder': 'Enter email of the customer',
+            # }),
             'comments': forms.TextInput(attrs={
                 'class': 'form-control',
                 'id': 'invoice_comments',
@@ -183,11 +185,15 @@ InvoiceDetailFormSet = formset_factory(InvoiceDetailForm, extra=1)
 class StockForm(forms.ModelForm):
     class Meta:
         model = Stock
-        fields = ['name', 'quantity', 'price']
+        fields = ['name', 'category', 'quantity', 'price']  # Added category
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control rounded-pill',
                 'placeholder': 'Enter the name of stock',
+            }),
+            'category': forms.TextInput(attrs={
+                'class': 'form-control rounded-pill',
+                'placeholder': 'e.g., Electronics, Furniture, Stationery, etc.',
             }),
             'quantity': forms.NumberInput(attrs={
                 'class': 'form-control rounded-pill',
@@ -198,4 +204,3 @@ class StockForm(forms.ModelForm):
                 'placeholder': 'Enter the price',
             }),
         }
-

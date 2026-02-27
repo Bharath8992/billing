@@ -313,6 +313,34 @@ def view_customer(request):
     return render(request, "invoice/view_customer.html", context)
 
 
+
+def customer_list(request):
+    status = request.GET.get('status')  # normal or membership
+    search = request.GET.get('search')
+
+    customers = Customer.objects.all()
+
+    # Filter by status
+    if status == "Normal":
+        customers = customers.filter(customer_status="Normal")
+    elif status == "Membership":
+        customers = customers.filter(customer_status="Membership")
+
+    # Search filter
+    if search:
+        customers = customers.filter(
+            customer_name__icontains=search
+        ) | customers.filter(
+            customer_number__icontains=search
+        ) | customers.filter(
+            customer_email__icontains=search
+        )
+
+    context = {
+        "customer": customers
+    }
+    return render(request, "invoice/view_customer.html", context)
+
 # Edit Customer
 @admin_required
 def edit_customer(request, pk):
@@ -401,9 +429,9 @@ def pdf_create_invoice(request):
         customer_id = request.POST.get("customer")
         new_customer_name = request.POST.get("new_customer_name", "").strip()
         new_customer_mobile = request.POST.get("new_customer_mobile", "").strip()
-        new_customer_email = request.POST.get("new_customer_email", "").strip()
+        # new_customer_email = request.POST.get("new_customer_email", "").strip()
         new_customer_gender = request.POST.get("new_customer_gender", "Male")
-        new_customer_dob = request.POST.get("new_customer_dob", "")
+        # new_customer_dob = request.POST.get("new_customer_dob", "")
         new_customer_status = request.POST.get("new_customer_status", "Normal")
         
         customer = None
@@ -440,9 +468,9 @@ def pdf_create_invoice(request):
                     customer = Customer.objects.create(
                         customer_name=new_customer_name,
                         customer_gender=new_customer_gender,
-                        customer_dob=dob,
+                        # customer_dob=dob,
                         customer_number=new_customer_mobile,
-                        customer_email=new_customer_email if new_customer_email else None,
+                        # customer_email=new_customer_email if new_customer_email else None,
                         customer_status=new_customer_status
                     )
                 except Exception as e:
@@ -732,6 +760,7 @@ from utils.adminhandler import admin_required
 
 
 @admin_required
+
 def create_invoice(request):
     products = Product.objects.all()
     customers = Customer.objects.all()
@@ -748,23 +777,24 @@ def create_invoice(request):
     selected_customer_id = request.POST.get("selected_customer_id")
     new_name = request.POST.get("new_customer_name", "").strip()
     new_mobile = request.POST.get("new_customer_mobile", "").strip()
-    new_email = request.POST.get("new_customer_email", "").strip()
     new_gender = request.POST.get("new_customer_gender", "Male")
-    new_dob = request.POST.get("new_customer_dob")
     new_status = request.POST.get("new_customer_status", "Normal")
     
     # Get price type from form (important!)
     price_type = request.POST.get("price_type", "regular")
+    
+    # Get amount paid
+    amount_paid = request.POST.get("amount_paid", "0")
+    try:
+        amount_paid = float(amount_paid)
+    except ValueError:
+        amount_paid = 0.0
 
     customer = None
 
     if selected_customer_id:
         customer = Customer.objects.filter(id=selected_customer_id).first()
     elif new_name and new_mobile:
-        dob = date.today()
-        if new_dob:
-            dob = datetime.strptime(new_dob, "%Y-%m-%d").date()
-
         existing_customer = Customer.objects.filter(
             customer_number=new_mobile
         ).first()
@@ -777,8 +807,6 @@ def create_invoice(request):
                 defaults={
                     "customer_name": new_name,
                     "customer_gender": new_gender,
-                    "customer_dob": dob,
-                    "customer_email": new_email,
                     "customer_status": new_status,
                 }
             )
@@ -797,7 +825,6 @@ def create_invoice(request):
     invoice = Invoice.objects.create(
         customer=customer.customer_name,
         contact=customer.customer_number,
-        email=customer.customer_email or "",
         comments=request.POST.get("comments", "")
     )
 
@@ -844,16 +871,42 @@ def create_invoice(request):
             "9983",
             str(qty),
             "pcs",
-            price_display,  # Updated to show proper pricing
+            price_display,
             "0.00",
             "0.00",
             f"{subtotal:.2f}",
         ])
 
+    # Calculate payment details
     invoice.total = total
+    
+    # Handle amount paid logic
+    if amount_paid > 0:
+        if amount_paid >= total:
+            # Fully paid or overpaid
+            invoice.amount_paid = total
+            invoice.balance_due = 0
+            if amount_paid > total:
+                invoice.change_returned = amount_paid - total
+            else:
+                invoice.change_returned = 0
+            invoice.payment_status = 'PAID'
+        else:
+            # Partially paid
+            invoice.amount_paid = amount_paid
+            invoice.balance_due = total - amount_paid
+            invoice.change_returned = 0
+            invoice.payment_status = 'PARTIAL'
+    else:
+        # No payment
+        invoice.amount_paid = 0
+        invoice.balance_due = total
+        invoice.change_returned = 0
+        invoice.payment_status = 'UNPAID'
+    
     invoice.save()
 
-    # ================= PDF GENERATION (UPDATED) =================
+    # ================= PDF GENERATION =================
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -897,8 +950,6 @@ def create_invoice(request):
     y -= 12
     c.drawString(30, y, f"Mobile: {invoice.contact}")
     y -= 12
-    c.drawString(30, y, f"Email: {invoice.email}")
-    y -= 12
     
     # Show customer status and price type
     c.setFont("Helvetica-Bold", 9)
@@ -933,8 +984,6 @@ def create_invoice(request):
     
     c.drawString(info_x, y, f"Invoice Date: {invoice_date}")
     y -= 12
-    c.drawString(info_x, y, f"Due Date: -")
-    y -= 12
     c.drawString(info_x, y, f"Time: {datetime.now().strftime('%I:%M %p')}")
 
     # === Table Header ===
@@ -957,7 +1006,7 @@ def create_invoice(request):
         for i, val in enumerate(row):
             c.drawString(col_x[i], y, str(val))
         y -= row_height
-        if y < 100:  # new page if space ends
+        if y < 150:
             c.showPage()
             y = height - 100
             c.setFont("Helvetica", 9)
@@ -983,21 +1032,53 @@ def create_invoice(request):
         c.setFillColor(colors.grey)
         c.drawRightString(width - 40, y - 50, f"₹{regular_total:,.2f}")
         c.setFillColor(colors.black)
-        y -= 35  # Adjust for extra lines
+        y -= 35
+
+    # === Payment Details Section ===
+    y_position = y - 35
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(30, y_position, "Payment Details:")
+    y_position -= 15
+    c.setFont("Helvetica", 9)
+    c.drawString(30, y_position, f"Amount Paid: ₹{invoice.amount_paid:,.2f}")
+    y_position -= 12
+    
+    if invoice.payment_status == 'PAID':
+        if invoice.change_returned > 0:
+            c.drawString(30, y_position, f"Change Returned: ₹{invoice.change_returned:,.2f}")
+            c.setFillColor(colors.green)
+        else:
+            c.drawString(30, y_position, "Payment Status: Fully Paid")
+            c.setFillColor(colors.green)
+    elif invoice.payment_status == 'PARTIAL':
+        c.drawString(30, y_position, f"Balance Due: ₹{invoice.balance_due:,.2f}")
+        c.setFillColor(colors.red)
+    else:
+        c.drawString(30, y_position, "Payment Status: Unpaid")
+        c.setFillColor(colors.red)
+    
+    c.setFillColor(colors.black)
+    y_position -= 12
+    
+    # Show discount given if partially paid
+    if invoice.payment_status == 'PARTIAL' and invoice.amount_paid < invoice.total:
+        c.drawString(30, y_position, f"Discount Given: ₹{invoice.total - invoice.amount_paid:,.2f}")
+        c.setFillColor(colors.orange)
+        c.setFillColor(colors.black)
 
     # === Amount in Words ===
     c.setFont("Helvetica", 9)
     amount_words = num2words(invoice.total, lang="en").title() + " Only"
-    c.drawString(35, y - 35, f"Rs. {amount_words}")
+    c.drawString(35, 140, f"Rs. {amount_words}")
 
     # === Bank Details ===
     c.setFont("Helvetica-Bold", 10)
     c.drawString(30, 120, "Bank Details:")
     c.setFont("Helvetica", 9)
-    c.drawString(30, 108, "Bank:")
-    c.drawString(30, 96, "Account Number: ")
-    c.drawString(30, 84, "IFSC: ")
-    c.drawString(30, 72, "Branch: ")
+    c.drawString(30, 108, "Bank: HDFC Bank")
+    c.drawString(30, 96, "Account Number: 50200012345678")
+    c.drawString(30, 84, "IFSC: HDFC0001234")
+    c.drawString(30, 72, "Branch: Vellore Main")
     c.rect(25, 60, 270, 70, stroke=True)
 
     # === Terms ===
@@ -1027,8 +1108,8 @@ def create_invoice(request):
         buffer,
         as_attachment=True,
         filename=f"Invoice_{invoice.id}.pdf"
-    )
-
+    )  
+    
 # AJAX view for auto-filling customer details
 @admin_required
 def get_customer_details(request):
@@ -1636,6 +1717,10 @@ def invoice(request):
         }
     return render(request, "invoice/create_invoice.html", context)
 
+from django.db.models import Q, Sum
+
+from django.db.models import Q, Sum
+
 @admin_required
 def create_expences(request):
     total_product = Product.objects.count()
@@ -1665,13 +1750,48 @@ def view_expences(request):
     total_invoice = Invoice.objects.count()
     total_income = getTotalIncome()
 
+    # Get filter parameters
+    category_filter = request.GET.get('category', '')
+    status_filter = request.GET.get('status', '')
+    search_query = request.GET.get('search', '')
+    
+    # Base queryset
     expences = Expences.objects.filter(expence_is_delete=False)
-
+    
+    # Apply filters
+    if category_filter:
+        expences = expences.filter(category__icontains=category_filter)
+    if status_filter:
+        expences = expences.filter(status=status_filter)
+    if search_query:
+        expences = expences.filter(
+            Q(staf_name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(category__icontains=search_query)
+        )
+    
+    # Get unique categories for filter dropdown
+    unique_categories = Expences.objects.filter(
+        expence_is_delete=False
+    ).exclude(
+        category__isnull=True
+    ).exclude(
+        category__exact=''
+    ).values_list('category', flat=True).distinct().order_by('category')
+    
+    # Calculate total expenses
+    total_expenses = expences.aggregate(total=Sum('amount'))['total'] or 0
+    
     context = {
         "total_product": total_product,
         "total_invoice": total_invoice,
         "total_income": total_income,
         "expences": expences,
+        "unique_categories": unique_categories,
+        "selected_category": category_filter,
+        "selected_status": status_filter,
+        "search_query": search_query,
+        "total_expenses": total_expenses,
     }
     return render(request, "invoice/view_expences.html", context)
 
@@ -1847,22 +1967,56 @@ def download_all_invoices_pdf(request):
     return response
 
 
-
 @admin_required
 def view_stock(request):
     total_product = Product.objects.count()
     total_invoice = Invoice.objects.count()
     total_income = getTotalIncome()
 
+    # Get filter parameters
+    category_filter = request.GET.get('category', '')
+    search_query = request.GET.get('search', '')
+    
+    # Base queryset
     stock = Stock.objects.filter(expence_is_delete=False)
-
+    
+    # Apply filters
+    if category_filter:
+        stock = stock.filter(category=category_filter)
+    if search_query:
+        stock = stock.filter(
+            Q(name__icontains=search_query) |
+            Q(category__icontains=search_query)
+        )
+    
+    # Get unique categories for dropdown
+    unique_categories = Stock.objects.filter(
+        expence_is_delete=False
+    ).exclude(
+        category__isnull=True
+    ).exclude(
+        category__exact=''
+    ).values_list('category', flat=True).distinct().order_by('category')
+    
+    # Calculate totals
+    total_items = stock.count()
+    total_quantity = stock.aggregate(total=Sum('quantity'))['total'] or 0
+    total_value = sum(item.quantity * item.price for item in stock)
+    
     context = {
         "total_product": total_product,
         "total_invoice": total_invoice,
         "total_income": total_income,
         "stock": stock,
+        "unique_categories": unique_categories,
+        "selected_category": category_filter,
+        "search_query": search_query,
+        "total_items": total_items,
+        "total_quantity": total_quantity,
+        "total_value": total_value,
     }
     return render(request, "invoice/view_stock.html", context)
+
 
 @admin_required
 def create_stock(request):
@@ -1885,6 +2039,7 @@ def create_stock(request):
         "form": form,
     }
     return render(request, "invoice/create_stock.html", context)
+
 
 @admin_required
 def edit_stock(request, pk):
@@ -1926,8 +2081,6 @@ def delete_stock(request, pk):
     })
 
 
-
-
 @admin_required
 def download_stock(request):
     response = HttpResponse(content_type='text/csv')
@@ -1935,8 +2088,8 @@ def download_stock(request):
 
     writer = csv.writer(response)
 
-    # Header row
-    writer.writerow(['ID', 'Item Name', 'Quantity', 'Price'])
+    # Header row (updated with category)
+    writer.writerow(['ID', 'Item Name', 'Category', 'Quantity', 'Price', 'Total Value'])
 
     # Data rows
     stock_items = Stock.objects.filter(expence_is_delete=False)
@@ -1945,8 +2098,10 @@ def download_stock(request):
         writer.writerow([
             stock.id,
             stock.name,
+            stock.category or '-',
             stock.quantity,
             stock.price,
+            stock.quantity * stock.price,
         ])
 
     return response

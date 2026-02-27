@@ -1,50 +1,210 @@
 {% extends "invoice/base/base.html" %}
-<!-- Content Row -->
+{% load static %}
+
 {% block content %}
 <div class="row">
     <div class="col-xl-12 col-lg-7">
-        <div class="card shadow mb-4">
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Total Items</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_items }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Total Quantity</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_quantity }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-cubes fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Total Value</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ total_value|floatformat:2 }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-rupee-sign fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Categories</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ unique_categories|length }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-folder fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card shadow mb-4">
             <!-- Card Header -->
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <label class="m-0 font-weight-bold text-primary">Stock</label>
+            <div class="card-header py-3 d-flex flex-column flex-md-row align-items-center justify-content-between">
+                <label class="m-0 font-weight-bold text-primary mb-2 mb-md-0">
+                    <i class="fas fa-boxes mr-2"></i>Stock Management
+                </label>
+                <div class="d-flex flex-wrap align-items-center">
+                    <a href="{% url 'create_stock' %}" class="btn btn-sm btn-success mr-2">
+                        <i class="fas fa-plus mr-1"></i>Add New Stock
+                    </a>
+                    <a href="{% url 'download_stock' %}" class="btn btn-sm btn-info">
+                        <i class="fas fa-download mr-1"></i>Download CSV
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card-body bg-light border-bottom">
+                <form method="get" class="form-row align-items-end">
+                    <!-- Search Box -->
+                    <div class="col-md-4 mb-2">
+                        <label for="search" class="font-weight-bold small">Search</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="search" id="search" class="form-control" 
+                                   placeholder="Search by name or category..." 
+                                   value="{{ search_query|default:'' }}">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Filter - DROPDOWN from DB -->
+                    <div class="col-md-4 mb-2">
+                        <label for="category" class="font-weight-bold small">Category</label>
+                        <select name="category" id="category" class="form-control form-control-sm">
+                            <option value="">All Categories</option>
+                            {% for category in unique_categories %}
+                                <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>
+                                    {{ category }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Filter Actions -->
+                    <div class="col-md-4 mb-2">
+                        <label class="font-weight-bold small d-block">&nbsp;</label>
+                        <div class="btn-group btn-group-sm w-100">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter mr-1"></i>Apply Filters
+                            </button>
+                            {% if selected_category or search_query %}
+                            <a href="{% url 'view_stock' %}" class="btn btn-secondary">
+                                <i class="fas fa-times mr-1"></i>Clear
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- Active Filters Display -->
+                {% if selected_category or search_query %}
+                <div class="mt-2">
+                    <span class="font-weight-bold small">Active Filters:</span>
+                    {% if search_query %}
+                    <span class="badge badge-info ml-2 p-2">
+                        Search: "{{ search_query }}" 
+                        <a href="?{% if selected_category %}category={{ selected_category }}{% endif %}" 
+                           class="text-white ml-1">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </span>
+                    {% endif %}
+                    {% if selected_category %}
+                    <span class="badge badge-info ml-2 p-2">
+                        Category: {{ selected_category }}
+                        <a href="?{% if search_query %}search={{ search_query }}{% endif %}" 
+                           class="text-white ml-1">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
 
             <!-- Card Body -->
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
+                    <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                        <thead class="thead-light">
                             <tr>
                                 <th>ID</th>
                                 <th>Item Name</th>
+                                <th>Category</th>
                                 <th>Quantity</th>
-                                <th>Price</th>
-                                <th>Edit</th>
-                                <th>Delete</th>
+                                <th>Price (₹)</th>
+                                <th>Total Value (₹)</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             {% for i in stock %}
                             <tr>
-                                <td style="padding: 0.45em;">{{ i.id }}</td>
-                                <td style="padding: 0.45em;">{{ i.name }}</td>
-                                <td style="padding: 0.45em;">{{ i.quantity }}</td>
-                                <td style="padding: 0.45em;">{{ i.price }}</td>
-
-                                <td style="padding: 0;">
+                                <td class="align-middle">{{ i.id }}</td>
+                                <td class="align-middle">
+                                    <i class="fas fa-box mr-1 text-primary"></i>{{ i.name }}
+                                </td>
+                                <td class="align-middle">
+                                    {% if i.category %}
+                                        <span class="badge badge-info">{{ i.category }}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle">{{ i.quantity }}</td>
+                                <td class="align-middle font-weight-bold">₹{{ i.price }}</td>
+                                <td class="align-middle font-weight-bold text-success">₹{% widthratio i.quantity 1 i.price %}</td>
+                                <td class="align-middle text-center" style="min-width: 100px;">
                                     <a href="{% url 'edit_stock' i.id %}"
-                                       class="btn btn-outline-primary"
-                                       style="width: 100%; height: 100%; border-radius: 0">
+                                       class="btn btn-sm btn-outline-primary" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                </td>
-
-                                <td style="padding: 0;">
                                     <a href="{% url 'delete_stock' i.id %}"
-                                       class="btn btn-outline-danger"
-                                       style="width: 100%; height: 100%; border-radius: 0">
+                                       class="btn btn-sm btn-outline-danger" title="Delete">
                                         <i class="fas fa-trash-alt"></i>
                                     </a>
                                 </td>
@@ -52,15 +212,65 @@
 
                             {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center">No Stock Found</td>
+                                <td colspan="7" class="text-center py-4">
+                                    <i class="fas fa-box-open fa-3x text-gray-300 mb-3"></i>
+                                    <p class="text-muted mb-0">No Stock Found</p>
+                                    {% if selected_category or search_query %}
+                                    <p class="text-muted small">Try clearing your filters</p>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
+                        <tfoot class="bg-light font-weight-bold">
+                            <tr>
+                                <td colspan="3" class="text-right">Totals:</td>
+                                <td>{{ total_quantity }}</td>
+                                <td></td>
+                                <td>₹{{ total_value|floatformat:2 }}</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    $('#dataTable').DataTable({
+        "pageLength": 25,
+        "ordering": true,
+        "order": [[0, "desc"]],
+        "columnDefs": [
+            { "orderable": false, "targets": [6] }
+        ],
+        "language": {
+            "emptyTable": "No stock found",
+            "info": "Showing _START_ to _END_ of _TOTAL_ items",
+            "infoEmpty": "Showing 0 to 0 of 0 items",
+            "infoFiltered": "(filtered from _MAX_ total items)",
+            "lengthMenu": "Show _MENU_ items",
+            "search": "Search:",
+            "paginate": {
+                "first": "First",
+                "last": "Last",
+                "next": "Next",
+                "previous": "Previous"
+            }
+        },
+        "dom": '<"top"lf>rt<"bottom"ip><"clear">'
+    });
+    
+    // Auto-submit on category change
+    $('#category').on('change', function() {
+        $(this).closest('form').submit();
+    });
+});
+</script>
 {% endblock %}
