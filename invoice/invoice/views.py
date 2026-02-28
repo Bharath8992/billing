@@ -394,299 +394,6 @@ from .models import Product, Customer, Invoice, InvoiceDetail
 
 
 
-from django.http import FileResponse
-from django.contrib.admin.views.decorators import staff_member_required
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.lib import colors
-from reportlab.lib.utils import ImageReader
-from num2words import num2words
-import io
-import os
-from django.conf import settings
-
-
-
-from datetime import datetime, date  # Add this import at the top
-import io
-from django.http import FileResponse
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from num2words import num2words
-
-@admin_required
-def pdf_create_invoice(request):
-    total_product = Product.objects.count()
-    total_invoice = Invoice.objects.count()
-    products = Product.objects.all()
-    customers = Customer.objects.all()
-
-    if request.method == "POST":
-        # ------------------------------
-        # 1️⃣ Handle Customer Creation/Selection
-        # ------------------------------
-        customer_id = request.POST.get("customer")
-        new_customer_name = request.POST.get("new_customer_name", "").strip()
-        new_customer_mobile = request.POST.get("new_customer_mobile", "").strip()
-        # new_customer_email = request.POST.get("new_customer_email", "").strip()
-        new_customer_gender = request.POST.get("new_customer_gender", "Male")
-        # new_customer_dob = request.POST.get("new_customer_dob", "")
-        new_customer_status = request.POST.get("new_customer_status", "Normal")
-        
-        customer = None
-        
-        # Option 1: Existing customer selected
-        if customer_id and customer_id != "new":
-            try:
-                customer = Customer.objects.get(id=customer_id)
-            except Customer.DoesNotExist:
-                pass
-        
-        # Option 2: New customer provided
-        elif new_customer_name and new_customer_mobile:
-            # Check if customer already exists with this mobile
-            existing_customer = Customer.objects.filter(
-                customer_number=new_customer_mobile
-            ).first()
-            
-            if existing_customer:
-                customer = existing_customer
-            else:
-                # Create new customer with all required fields
-                try:
-                    # Handle date conversion
-                    dob = None
-                    if new_customer_dob:
-                        try:
-                            dob = datetime.strptime(new_customer_dob, '%Y-%m-%d').date()
-                        except ValueError:
-                            dob = date.today()  # Use today as default
-                    else:
-                        dob = date.today()  # Use today as default
-                    
-                    customer = Customer.objects.create(
-                        customer_name=new_customer_name,
-                        customer_gender=new_customer_gender,
-                        # customer_dob=dob,
-                        customer_number=new_customer_mobile,
-                        # customer_email=new_customer_email if new_customer_email else None,
-                        customer_status=new_customer_status
-                    )
-                except Exception as e:
-                    return render(request, "invoice/create_invoice.html", {
-                        "error": f"Error creating customer: {str(e)}",
-                        "products": products,
-                        "customers": customers,
-                    })
-        
-        if not customer:
-            return render(request, "invoice/create_invoice.html", {
-                "error": "Please select a customer or enter new customer details.",
-                "products": products,
-                "customers": customers,
-            })
-
-        # ------------------------------
-        # 2️⃣ Get Selected Products
-        # ------------------------------
-        selected_products = request.POST.getlist("products")
-        quantities = request.POST.getlist("quantities")
-
-        if not selected_products:
-            return render(request, "invoice/create_invoice.html", {
-                "error": "Please select at least one product.",
-                "products": products,
-                "customers": customers,
-            })
-
-        # ------------------------------
-        # 3️⃣ Create Invoice Entry
-        # ------------------------------
-        invoice = Invoice.objects.create(
-            customer=customer.customer_name,
-            contact=customer.customer_number,
-            email=customer.customer_email or "",
-            comments=request.POST.get("comments", ""),
-        )
-
-        total = 0
-        items = []
-
-        # ------------------------------
-        # 4️⃣ Build Invoice Details
-        # ------------------------------
-        for i, (product_id, quantity) in enumerate(zip(selected_products, quantities), start=1):
-            try:
-                product = Product.objects.get(id=product_id)
-            except Product.DoesNotExist:
-                continue
-
-            qty = int(quantity) if quantity else 1
-            price = getattr(product, "services_price", getattr(product, "price", 0))
-            subtotal = price * qty
-            total += subtotal
-
-            # Save to DB
-            InvoiceDetail.objects.create(invoice=invoice, product=product, amount=qty)
-
-            # Add to items table
-            items.append([
-                i,
-                getattr(product, "services_name", getattr(product, "name", "Unnamed Product")),
-                "9983",  # Example HSN/SAC code
-                str(qty),
-                "pcs",
-                f"{price:.2f}",
-                "0.00",  # Discount
-                "0.00",  # Tax %
-                f"{subtotal:.2f}",
-            ])
-
-        invoice.total = total
-        invoice.save()
-
-        # ------------------------------
-        # 5️⃣ Generate Invoice PDF
-        # ------------------------------
-        buffer = io.BytesIO()
-        c = canvas.Canvas(buffer, pagesize=A4)
-        width, height = A4
-        
-        from reportlab.lib.utils import ImageReader
-        bg_image = ImageReader("https://i.pinimg.com/1200x/5a/f3/12/5af312bd3ebb3a67d92bc1e266065d30.jpg")
-        c.drawImage(bg_image, 0, 0, width=width, height=height, mask='auto')
-
-
-        # === Logo ===
-        try:
-            c.drawImage("https://curatherapycentre.com/images/logo.png", 40, height - 100, width=50, height=50, mask='auto')
-        except:
-            pass
-
-        # === Header ===
-        c.setFont("Helvetica-Bold", 14)
-        c.drawCentredString(width / 2, height - 50, "BILL OF SUPPLY")
-        c.setFont("Helvetica-Bold", 12)
-        c.drawCentredString(width / 2, height - 70, "CURA THERAPY CENTER")
-
-        c.setFont("Helvetica", 9)
-        c.drawCentredString(width / 2, height - 85, "CMC Eye Hospital Road, Arni Road, Vellore")
-        c.drawCentredString(width / 2, height - 100, "Email: curatherapycenter@gmail.com | Mobile: +91 8610609373")
-
-        # === Border ===
-        c.setLineWidth(1)
-        c.rect(20, 20, width - 40, height - 40)
-
-        # === Billing Info ===
-        y = height - 130
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(30, y, "Billing Details")
-        y -= 15
-        c.setFont("Helvetica", 9)
-        c.drawString(30, y, f"Name: {invoice.customer}")
-        y -= 12
-        c.drawString(30, y, f"Mobile: {invoice.contact}")
-        y -= 12
-        c.drawString(30, y, f"Email: {invoice.email}")
-        y -= 12
-        c.drawString(30, y, f"Comments: {invoice.comments}")
-
-        # === Invoice Info ===
-        info_x = 320
-        y = height - 130
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(info_x, y, "Invoice Info:")
-        y -= 15
-        c.setFont("Helvetica", 9)
-        c.drawString(info_x, y, f"Invoice No: {invoice.id}")
-        y -= 12
-        c.drawString(info_x, y, f"Invoice Date: {invoice.created_at.strftime('%d-%b-%Y') if hasattr(invoice, 'created_at') else date.today().strftime('%d-%b-%Y')}")
-        y -= 12
-        c.drawString(info_x, y, f"Due Date: -")
-        y -= 12
-        c.drawString(info_x, y, f"Time: {datetime.now().strftime('%I:%M %p')}")
-
-        # === Table Header ===
-        y = height - 220
-        headers = ["Sr.", "Item Description", "HSN/SAC", "Qty", "Unit", "List Price", "Disc.", "Tax %", "Amount (₹)"]
-        col_x = [30, 60, 210, 280, 310, 350, 410, 460, 510]
-        row_height = 18
-
-        c.setFillColor(colors.lightgrey)
-        c.rect(25, y - 10, width - 50, 18, fill=True, stroke=False)
-        c.setFillColor(colors.black)
-        c.setFont("Helvetica-Bold", 9)
-        for i, h in enumerate(headers):
-            c.drawString(col_x[i], y - 5, h)
-
-        # === Table Data ===
-        y -= 25
-        c.setFont("Helvetica", 9)
-        for row in items:
-            for i, val in enumerate(row):
-                c.drawString(col_x[i], y, str(val))
-            y -= row_height
-            if y < 100:  # new page if space ends
-                c.showPage()
-                y = height - 100
-                c.setFont("Helvetica", 9)
-
-        # === Total ===
-        c.setFont("Helvetica-Bold", 11)
-        c.drawString(120, y - 20, "Total")
-        c.drawRightString(width - 40, y - 20, f"{invoice.total:,.2f}")
-
-        # === Amount in Words ===
-        c.setFont("Helvetica", 9)
-        amount_words = num2words(invoice.total, lang="en").title() + " Only"
-        c.drawString(35, y - 35, f"Rs. {amount_words}")
-
-        # === Bank Details ===
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(30, 120, "Bank Details:")
-        c.setFont("Helvetica", 9)
-        c.drawString(30, 108, "Bank:")
-        c.drawString(30, 96, "Account Number: ")
-        c.drawString(30, 84, "IFSC: ")
-        c.drawString(30, 72, "Branch: ")
-        c.rect(25, 60, 270, 70, stroke=True)
-
-        # === Terms ===
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(320, 120, "Terms & Conditions:")
-        c.setFont("Helvetica", 9)
-        terms = [
-            "1. Goods once sold will not be taken back.",
-            "2. Interest @18% p.a. will be charged if payment is delayed.",
-            "3. Subject to 'Tamil Nadu' Jurisdiction only."
-        ]
-        y_terms = 108
-        for term in terms:
-            c.drawString(320, y_terms, term)
-            y_terms -= 12
-        c.rect(315, 60, width - 340, 70, stroke=True)
-
-        # === Signature ===
-        c.line(width - 140, 50, width - 40, 50)
-        c.drawRightString(width - 40, 40, "Authorized Signature")
-
-        c.showPage()
-        c.save()
-        buffer.seek(0)
-
-        return FileResponse(buffer, as_attachment=True, filename=f"Invoice_{invoice.id}.pdf")
-
-    # GET Request
-    context = {
-        "total_product": total_product,
-        "total_invoice": total_invoice,
-        "products": products,
-        "customers": customers,
-    }
-    return render(request, "invoice/create_invoice.html", context)
-
-
 
 from django.http import JsonResponse
 from django.db.models import Q
@@ -759,6 +466,7 @@ from .models import Product, Customer, Invoice, InvoiceDetail
 from utils.adminhandler import admin_required
 
 
+
 @admin_required
 def create_invoice(request):
     products = Product.objects.all()
@@ -779,7 +487,7 @@ def create_invoice(request):
     new_gender = request.POST.get("new_customer_gender", "Male")
     new_status = request.POST.get("new_customer_status", "Normal")
     
-    # Get price type from form
+    # Get price type from form (important!)
     price_type = request.POST.get("price_type", "regular")
     
     # Get amount paid
@@ -790,14 +498,7 @@ def create_invoice(request):
         amount_paid = 0.0
 
     # Get payment method
-    payment_method = request.POST.get("payment_method", "cash")
-    
-    # Get manual discount
-    manual_discount = request.POST.get("manual_discount", "0")
-    try:
-        manual_discount = float(manual_discount)
-    except ValueError:
-        manual_discount = 0.0
+    payment_method = request.POST.get("payment_method", "CASH")
 
     customer = None
 
@@ -826,10 +527,6 @@ def create_invoice(request):
 
     # ================= PRODUCTS =====================
     product_ids = request.POST.getlist("products")
-    
-    # Remove duplicates from product_ids
-    product_ids = list(dict.fromkeys(product_ids))
-    
     if not product_ids:
         messages.error(request, "Please select at least one service")
         return redirect("create_invoice")
@@ -838,44 +535,31 @@ def create_invoice(request):
     invoice = Invoice.objects.create(
         customer=customer.customer_name,
         contact=customer.customer_number,
-        comments=request.POST.get("comments", ""),
-        payment_method=payment_method
+        comments=request.POST.get("comments", "")
     )
 
     items = []
     total = 0
-    regular_total = 0
-    processed_products = set()
+    regular_total = 0  # To calculate discount
 
-    # Process each selected product
     for index, pid in enumerate(product_ids, start=1):
-        if pid in processed_products:
-            continue
-            
-        try:
-            product = Product.objects.get(id=pid)
-        except Product.DoesNotExist:
-            continue
-            
+        product = Product.objects.get(id=pid)
         qty = int(request.POST.get(f"quantity_{pid}", 1))
         
         # DETERMINE WHICH PRICE TO USE
         if price_type == 'membership' and customer.customer_status == 'Membership':
             # Use membership price if available
-            price = product.membership_price
-            regular_price = product.services_price
+            price = float(product.membership_price)
+            regular_price = float(product.services_price)
         else:
             # Use regular price
-            price = product.services_price
-            regular_price = product.services_price
+            price = float(product.services_price)
+            regular_price = float(product.services_price)
         
         subtotal = qty * price
         regular_subtotal = qty * regular_price
         total += subtotal
         regular_total += regular_subtotal
-
-        # Calculate discount for this item
-        item_discount = regular_subtotal - subtotal
 
         # Create invoice detail
         InvoiceDetail.objects.create(
@@ -886,39 +570,31 @@ def create_invoice(request):
 
         # Prepare display price for PDF
         if price_type == 'membership' and customer.customer_status == 'Membership':
-            price_display = f"{regular_price:.2f} → {price:.2f}"
+            # Show both prices: Regular (strikethrough) and Membership
+            price_display = f"₹{regular_price:.2f} → ₹{price:.2f}"
         else:
-            price_display = f"{price:.2f}"
+            price_display = f"₹{price:.2f}"
 
+        # REMOVED HSN/SAC column - now only essential columns
         items.append([
             index,
-            product.services_name,
+            product.services_name[:30] + "..." if len(product.services_name) > 30 else product.services_name,
             str(qty),
-            "pcs",
             price_display,
-            f"{item_discount:.2f}",  # Item discount
-            f"{subtotal:.2f}",
+            f"₹{subtotal:.2f}",
         ])
-        
-        processed_products.add(pid)
 
-    # Calculate discounts
-    membership_discount = regular_total - total if regular_total > total else 0
-    
-    # Store original total before manual discount
-    original_total = total
-    
-    # Apply manual discount if any (from total after membership discount)
-    if manual_discount > 0:
-        total = max(0, total - manual_discount)
-    
+    # Calculate payment details
     invoice.total = total
     
-    # Handle amount paid logic with clear calculation
+    # Calculate discount
+    discount = regular_total - total if regular_total > total else 0
+    
+    # Handle amount paid logic
     if amount_paid > 0:
         if amount_paid >= total:
             # Fully paid or overpaid
-            invoice.amount_paid = total  # Only record up to the total amount
+            invoice.amount_paid = total
             invoice.balance_due = 0
             if amount_paid > total:
                 invoice.change_returned = amount_paid - total
@@ -938,16 +614,9 @@ def create_invoice(request):
         invoice.change_returned = 0
         invoice.payment_status = 'UNPAID'
     
-    invoice.discount_given = membership_discount + manual_discount
+    invoice.payment_method = payment_method
+    invoice.discount_amount = discount
     invoice.save()
-
-    # Return JSON response for AJAX if requested
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            'success': True,
-            'invoice_id': invoice.id,
-            'redirect_url': f'/invoice/download/{invoice.id}/'
-        })
 
     # ================= PDF GENERATION =================
     buffer = BytesIO()
@@ -970,53 +639,54 @@ def create_invoice(request):
         pass
 
     # === Header ===
-    c.setFont("Helvetica-Bold", 14)
-    c.drawCentredString(width / 2, height - 50, "BILL OF SUPPLY")
-    c.setFont("Helvetica-Bold", 12)
-    c.drawCentredString(width / 2, height - 70, "CURA THERAPY CENTER")
-
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(width / 2, height - 50, "CURA THERAPY CENTER")
     c.setFont("Helvetica", 9)
-    c.drawCentredString(width / 2, height - 85, "CMC Eye Hospital Road, Arni Road, Vellore")
-    c.drawCentredString(width / 2, height - 100, "Email: curatherapycenter@gmail.com | Mobile: +91 8610609373")
+    c.drawCentredString(width / 2, height - 65, "CMC Eye Hospital Road, Arni Road, Vellore - 632001")
+    c.drawCentredString(width / 2, height - 80, "Email: curatherapycenter@gmail.com | Mobile: +91 8610609373")
+    
+    # Invoice Title
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(width / 2, height - 110, "TAX INVOICE")
 
     # === Border ===
     c.setLineWidth(1)
     c.rect(20, 20, width - 40, height - 40)
 
-    # === Billing Info ===
-    y = height - 130
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(30, y, "Billing Details")
+    # === Billing Info (Left Side) ===
+    y = height - 150
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(30, y, "Bill To:")
+    y -= 20
+    c.setFont("Helvetica", 10)
+    c.drawString(30, y, f"{invoice.customer}")
     y -= 15
-    c.setFont("Helvetica", 9)
-    c.drawString(30, y, f"Name: {invoice.customer}")
-    y -= 12
     c.drawString(30, y, f"Mobile: {invoice.contact}")
-    y -= 12
+    y -= 15
     
     # Show customer status and price type
-    c.setFont("Helvetica-Bold", 9)
     if customer.customer_status == 'Membership':
         status_text = f"Status: {customer.customer_status}"
         if price_type == 'membership':
             status_text += " (Membership Price Applied)"
         else:
             status_text += " (Regular Price)"
+        c.setFont("Helvetica-Bold", 9)
         c.drawString(30, y, status_text)
-        y -= 12
+        y -= 15
     
     c.setFont("Helvetica", 9)
-    c.drawString(30, y, f"Comments: {invoice.comments}")
+    c.drawString(30, y, f"Comments: {invoice.comments or 'N/A'}")
 
-    # === Invoice Info ===
-    info_x = 320
-    y = height - 130
-    c.setFont("Helvetica-Bold", 9)
-    c.drawString(info_x, y, "Invoice Info:")
-    y -= 15
-    c.setFont("Helvetica", 9)
-    c.drawString(info_x, y, f"Invoice No: {invoice.id}")
-    y -= 12
+    # === Invoice Info (Right Side) ===
+    info_x = 350
+    y = height - 150
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(info_x, y, "Invoice Details:")
+    y -= 20
+    c.setFont("Helvetica", 10)
+    c.drawString(info_x, y, f"Invoice No: INV-{invoice.id:06d}")
+    y -= 18
     
     # Handle created_at field
     invoice_date = ""
@@ -1025,146 +695,215 @@ def create_invoice(request):
     else:
         invoice_date = date.today().strftime('%d-%b-%Y')
     
-    c.drawString(info_x, y, f"Invoice Date: {invoice_date}")
-    y -= 12
+    c.drawString(info_x, y, f"Date: {invoice_date}")
+    y -= 18
     c.drawString(info_x, y, f"Time: {datetime.now().strftime('%I:%M %p')}")
-    y -= 12
-    c.drawString(info_x, y, f"Payment Method: {payment_method.upper()}")
 
-    # === Table Header - REMOVED HSN/SAC and Tax %, ADDED Discount column ===
-    y = height - 220
-    headers = ["Sr.", "Item Description", "Qty", "Unit", "List Price", "Disc. (₹)", "Amount (₹)"]
-    col_x = [30, 60, 270, 310, 350, 410, 490]
-    row_height = 18
+    # === Table Header (Removed HSN/SAC) ===
+    y = height - 270
+    headers = ["#", "Service Description", "Qty", "Price", "Amount (₹)"]
+    col_x = [30, 60, 280, 360, 470]
+    row_height = 22
 
-    c.setFillColor(colors.lightgrey)
-    c.rect(25, y - 10, width - 50, 18, fill=True, stroke=False)
+    # Table header background
+    c.setFillColor(colors.HexColor('#2c3e50'))
+    c.rect(25, y - 10, width - 50, row_height, fill=True, stroke=False)
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 10)
+    
+    # Draw headers with proper alignment
+    c.drawString(col_x[0], y - 5, headers[0])
+    c.drawString(col_x[1], y - 5, headers[1])
+    c.drawString(col_x[2], y - 5, headers[2])
+    c.drawString(col_x[3], y - 5, headers[3])
+    c.drawRightString(col_x[4] + 70, y - 5, headers[4])
+    
     c.setFillColor(colors.black)
-    c.setFont("Helvetica-Bold", 9)
-    for i, h in enumerate(headers):
-        c.drawString(col_x[i], y - 5, h)
 
     # === Table Data ===
     y -= 25
     c.setFont("Helvetica", 9)
-    for row in items:
-        for i, val in enumerate(row):
-            c.drawString(col_x[i], y, str(val))
+    for idx, row in enumerate(items):
+        # Alternate row colors for better readability
+        if idx % 2 == 0:
+            c.setFillColor(colors.HexColor('#f8f9fa'))
+            c.rect(25, y - 15, width - 50, row_height, fill=True, stroke=False)
+            c.setFillColor(colors.black)
+        
+        c.drawString(col_x[0], y, str(row[0]))
+        
+        # Handle long service names
+        service_name = row[1]
+        c.drawString(col_x[1], y, service_name)
+        
+        c.drawString(col_x[2], y, row[2])
+        c.drawString(col_x[3], y, row[3])
+        c.drawRightString(col_x[4] + 70, y, row[4])
+        
         y -= row_height
-        if y < 150:
+        if y < 220:
             c.showPage()
             y = height - 100
             c.setFont("Helvetica", 9)
 
-    # === Calculate Total Discount ===
-    total_discount = membership_discount + manual_discount
+    # === PAYMENT SUMMARY SECTION (Right Aligned) ===
+    summary_y = y - 20
     
-    # === Total ===
+    # Draw payment summary box
+    c.setFillColor(colors.HexColor('#f8f9fa'))
+    c.rect(width - 250, summary_y - 140, 220, 150, fill=True, stroke=True)
+    c.setFillColor(colors.black)
+    
+    # Summary title
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(width - 240, summary_y - 15, "PAYMENT SUMMARY")
+    
+    # Draw a line
+    c.line(width - 240, summary_y - 25, width - 40, summary_y - 25)
+    
+    current_y = summary_y - 40
+    
+    # Subtotal
+    c.setFont("Helvetica", 10)
+    c.drawString(width - 240, current_y, "Subtotal:")
+    c.drawRightString(width - 40, current_y, f"₹{regular_total:,.2f}")
+    current_y -= 15
+    
+    # Membership Discount (if applicable) - NOW SHOWING PROPERLY
+    if discount > 0:
+        c.setFont("Helvetica", 10)
+        c.setFillColor(colors.HexColor('#27ae60'))
+        c.drawString(width - 240, current_y, "Membership Discount:")
+        c.drawRightString(width - 40, current_y, f"-₹{discount:,.2f}")
+        c.setFillColor(colors.black)
+        current_y -= 15
+    
+    # Total
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(120, y - 20, "Total")
-    c.drawRightString(width - 40, y - 20, f"{invoice.total:,.2f}")
+    c.drawString(width - 240, current_y, "TOTAL:")
+    c.setFillColor(colors.HexColor('#27ae60'))
+    c.drawRightString(width - 40, current_y, f"₹{total:,.2f}")
+    c.setFillColor(colors.black)
     
-    # Show discount breakdown if applicable
-    if total_discount > 0:
-        y_discount = y - 35
-        if membership_discount > 0:
-            c.setFont("Helvetica", 9)
-            c.drawString(120, y_discount, "Membership Discount:")
-            c.setFillColor(colors.green)
-            c.drawRightString(width - 40, y_discount, f"-₹{membership_discount:,.2f}")
-            y_discount -= 15
-        
-        if manual_discount > 0:
-            c.setFont("Helvetica", 9)
-            c.drawString(120, y_discount, "Additional Discount:")
-            c.setFillColor(colors.orange)
-            c.drawRightString(width - 40, y_discount, f"-₹{manual_discount:,.2f}")
-        
-        c.setFillColor(colors.black)
-        
-        # Show original total before discount
-        c.drawString(120, y - 65, "Original Amount:")
-        c.setFillColor(colors.grey)
-        c.drawRightString(width - 40, y - 65, f"₹{regular_total:,.2f}")
-        c.setFillColor(colors.black)
-        y -= 65
-    else:
-        y -= 35
-
-    # === Payment Details Section ===
-    y_position = y - 35
+    # Draw a line before payment details
+    current_y -= 10
+    c.line(width - 240, current_y, width - 40, current_y)
+    current_y -= 15
+    
+    # Payment Method
+    method_colors = {
+        'CASH': colors.HexColor('#27ae60'),
+        'CARD': colors.HexColor('#2980b9'),
+        'UPI': colors.HexColor('#8e44ad')
+    }
     c.setFont("Helvetica-Bold", 10)
-    c.drawString(30, y_position, "Payment Details:")
-    y_position -= 15
-    c.setFont("Helvetica", 9)
-    c.drawString(30, y_position, f"Amount Paid: ₹{invoice.amount_paid:,.2f}")
-    y_position -= 12
-    c.drawString(30, y_position, f"Payment Method: {payment_method.upper()}")
-    y_position -= 12
+    c.setFillColor(method_colors.get(payment_method, colors.black))
+    c.drawString(width - 240, current_y, f"Payment Mode: {payment_method}")
+    c.setFillColor(colors.black)
+    current_y -= 18
+    
+    # Amount Paid
+    c.setFont("Helvetica", 10)
+    c.drawString(width - 240, current_y, "Amount Paid:")
+    if invoice.amount_paid > 0:
+        c.setFillColor(colors.HexColor('#27ae60'))
+    c.drawRightString(width - 40, current_y, f"₹{invoice.amount_paid:,.2f}")
+    c.setFillColor(colors.black)
+    current_y -= 18
+    
+    # Payment Status with proper display
+    status_colors = {
+        'PAID': colors.HexColor('#27ae60'),
+        'PARTIAL': colors.HexColor('#f39c12'),
+        'UNPAID': colors.HexColor('#e74c3c')
+    }
     
     if invoice.payment_status == 'PAID':
         if invoice.change_returned > 0:
-            c.drawString(30, y_position, f"Change Returned: ₹{invoice.change_returned:,.2f}")
-            c.setFillColor(colors.green)
-        else:
-            c.drawString(30, y_position, "Payment Status: Fully Paid")
-            c.setFillColor(colors.green)
+            # Show change returned
+            c.drawString(width - 240, current_y, "Change Returned:")
+            c.setFillColor(colors.HexColor('#27ae60'))
+            c.drawRightString(width - 40, current_y, f"₹{invoice.change_returned:,.2f}")
+            current_y -= 18
+            
+            # Show status
+            c.drawString(width - 240, current_y, "Status:")
+            c.setFillColor(status_colors['PAID'])
+            c.drawRightString(width - 40, current_y, "PAID (Excess)")
+            
     elif invoice.payment_status == 'PARTIAL':
-        c.drawString(30, y_position, f"Balance Due: ₹{invoice.balance_due:,.2f}")
-        c.setFillColor(colors.red)
-    else:
-        c.drawString(30, y_position, "Payment Status: Unpaid")
-        c.setFillColor(colors.red)
+        c.drawString(width - 240, current_y, "Balance Due:")
+        c.setFillColor(colors.HexColor('#e74c3c'))
+        c.drawRightString(width - 40, current_y, f"₹{invoice.balance_due:,.2f}")
+        current_y -= 18
+        
+        c.drawString(width - 240, current_y, "Status:")
+        c.setFillColor(status_colors['PARTIAL'])
+        c.drawRightString(width - 40, current_y, "PARTIALLY PAID")
+        
+    else:  # UNPAID
+        c.drawString(width - 240, current_y, "Balance Due:")
+        c.setFillColor(colors.HexColor('#e74c3c'))
+        c.drawRightString(width - 40, current_y, f"₹{invoice.balance_due:,.2f}")
+        current_y -= 18
+        
+        c.drawString(width - 240, current_y, "Status:")
+        c.setFillColor(status_colors['UNPAID'])
+        c.drawRightString(width - 40, current_y, "UNPAID")
     
     c.setFillColor(colors.black)
-    y_position -= 12
 
-    # === Amount in Words ===
+    # === Amount in Words (Left Side) ===
     c.setFont("Helvetica", 9)
-    amount_words = num2words(invoice.total, lang="en").title() + " Only"
-    c.drawString(35, 140, f"Rs. {amount_words}")
+    amount_words = num2words(total, lang="en").title() + " Only"
+    c.drawString(35, 160, "Amount in Words:")
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(35, 145, f"Rupees {amount_words}")
 
-    # === Bank Details ===
+    # === Bank Details (Left Side) ===
+    bank_y = 120
     c.setFont("Helvetica-Bold", 10)
-    c.drawString(30, 120, "Bank Details:")
-    c.setFont("Helvetica", 9)
-    c.drawString(30, 108, "Bank: HDFC Bank")
-    c.drawString(30, 96, "Account Number: 50200012345678")
-    c.drawString(30, 84, "IFSC: HDFC0001234")
-    c.drawString(30, 72, "Branch: Vellore Main")
-    c.rect(25, 60, 270, 70, stroke=True)
+    c.drawString(35, bank_y, "Bank Details:")
+    c.setFont("Helvetica", 8)
+    c.drawString(35, bank_y - 12, "Bank: HDFC Bank")
+    c.drawString(35, bank_y - 22, "A/c No: 50200012345678")
+    c.drawString(35, bank_y - 32, "IFSC: HDFC0001234")
+    c.rect(30, bank_y - 45, 200, 50, stroke=True)
 
-    # === Terms ===
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(320, 120, "Terms & Conditions:")
-    c.setFont("Helvetica", 9)
+    # === Terms & Conditions (Right Side) ===
+    terms_y = 120
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(width - 250, terms_y, "Terms & Conditions:")
+    c.setFont("Helvetica", 7)
     terms = [
-        "1. Goods once sold will not be taken back.",
-        "2. Interest @18% p.a. will be charged if payment is delayed.",
-        "3. Subject to 'Tamil Nadu' Jurisdiction only."
+        "1. Services once rendered cannot be refunded.",
+        "2. Subject to Vellore jurisdiction only.",
+        "3. This is a computer generated invoice.",
+        "4. Thank you for your business!"
     ]
-    y_terms = 108
+    term_y = terms_y - 12
     for term in terms:
-        c.drawString(320, y_terms, term)
-        y_terms -= 12
-    c.rect(315, 60, width - 340, 70, stroke=True)
+        c.drawString(width - 250, term_y, term)
+        term_y -= 10
+    c.rect(width - 255, terms_y - 55, 230, 70, stroke=True)
 
     # === Signature ===
-    c.line(width - 140, 50, width - 40, 50)
-    c.drawRightString(width - 40, 40, "Authorized Signature")
+    c.line(width - 140, 40, width - 40, 40)
+    c.setFont("Helvetica", 8)
+    c.drawRightString(width - 40, 30, "Authorized Signatory")
 
     c.showPage()
     c.save()
     buffer.seek(0)
-    
+
     return FileResponse(
         buffer,
         as_attachment=True,
-        filename=f"Invoice_{invoice.id}.pdf"
+        filename=f"Invoice_{invoice.id:06d}.pdf"
     )
+
     
     
-# AJAX view for auto-filling customer details
 @admin_required
 def get_customer_details(request):
     customer_id = request.GET.get("customer_id")
@@ -1247,7 +986,7 @@ def download_invoice_pdf(request, invoice_id):
     p.setFont("Helvetica", 12)
     p.drawString(50, y, f"Customer Name: {invoice.customer}")
     y -= 20
-    p.drawString(50, y, f"Email: {invoice.email}")
+    # p.drawString(50, y, f"Email: {invoice.email}")
     y -= 20
     p.drawString(50, y, f"Contact: {invoice.contact}")
     y -= 30
@@ -1462,9 +1201,9 @@ def invoice(request):
         customer_id = request.POST.get("customer")
         new_customer_name = request.POST.get("new_customer_name", "").strip()
         new_customer_mobile = request.POST.get("new_customer_mobile", "").strip()
-        new_customer_email = request.POST.get("new_customer_email", "").strip()
+        # new_customer_email = request.POST.get("new_customer_email", "").strip()
         new_customer_gender = request.POST.get("new_customer_gender", "Male")
-        new_customer_dob = request.POST.get("new_customer_dob", "")
+        # new_customer_dob = request.POST.get("new_customer_dob", "")
         new_customer_status = request.POST.get("new_customer_status", "Normal")
         
         customer = None
@@ -1908,9 +1647,9 @@ def download_customers_csv(request):
         'ID',
         'Customer Name',
         'Gender',
-        'Date of Birth',
+       
         'Mobile Number',
-        'Email',
+      
         'Status',
     ])
 
@@ -1921,9 +1660,9 @@ def download_customers_csv(request):
             c.id,
             c.customer_name,
             c.customer_gender,
-            c.customer_dob,
+          
             c.customer_number,
-            c.customer_email,
+            
             c.customer_status,
         ])
 

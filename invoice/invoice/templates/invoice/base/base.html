@@ -95,7 +95,7 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="{% url 'create_customer' %}">Add</a>
                         <a class="collapse-item" href="{% url 'view_customer' %}">View</a>
-                        <a class="collapse-item" href="{% url 'download_customers' %}">Download all Customer</a>
+                        
 
                     </div>
                 </div>
@@ -112,10 +112,10 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="{% url 'create_invoice' %}">Add</a>
                         <a class="collapse-item" href="{% url 'view_invoice' %}">View</a>
-                        <a class="collapse-item" href="{% url 'download_all_invoices' %}">Download</a>
+                        {% comment %} <a class="collapse-item" href="{% url 'download_all_invoices' %}">Download</a> {% endcomment %}
    
 
-                        <a class="collapse-item" href="{% url 'delete_all_invoice' %}">Delete</a>
+                        {% comment %} <a class="collapse-item" href="{% url 'delete_all_invoice' %}">Delete</a> {% endcomment %}
 
                     </div>
                 </div>

@@ -39,6 +39,20 @@ class Customer(models.Model):
 
 
 class Invoice(models.Model):
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('CASH', 'Cash'),
+        ('CARD', 'Card'),
+        ('UPI', 'UPI'),
+        ('BANK_TRANSFER', 'Bank Transfer'),
+    ]
+    
+    PAYMENT_STATUS_CHOICES = [
+        ('UNPAID', 'Unpaid'),
+        ('PARTIAL', 'Partially Paid'),
+        ('PAID', 'Paid'),
+    ]
+    
     date = models.DateField(auto_now_add=True)
     customer = models.TextField(default='')
     contact = models.CharField(
@@ -50,28 +64,15 @@ class Invoice(models.Model):
     balance_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     discount_given = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     change_returned = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    payment_method = models.CharField(
-        max_length=20,
-        choices=[
-            ('cash', 'Cash'),
-            ('card', 'Card'),
-            ('upi', 'UPI')
-        ],
-        default='cash'
-    )
-    payment_status = models.CharField(
-        max_length=20,
-        choices=[
-            ('UNPAID', 'Unpaid'),
-            ('PARTIAL', 'Partially Paid'),
-            ('PAID', 'Paid')
-        ],
-        default='UNPAID'
-    )
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='CASH')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='UNPAID')
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return str(self.id)
-    
+
+
 class InvoiceDetail(models.Model):
     invoice = models.ForeignKey(
         Invoice, on_delete=models.SET_NULL, blank=True, null=True)
