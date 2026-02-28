@@ -39,7 +39,7 @@ class Customer(models.Model):
 
 
 class Invoice(models.Model):
-    # date = models.DateField(auto_now_add=True)
+    date = models.DateField(auto_now_add=True)
     customer = models.TextField(default='')
     contact = models.CharField(
         max_length=255, default='', blank=True, null=True)
@@ -50,6 +50,15 @@ class Invoice(models.Model):
     balance_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     discount_given = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     change_returned = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_method = models.CharField(
+        max_length=20,
+        choices=[
+            ('cash', 'Cash'),
+            ('card', 'Card'),
+            ('upi', 'UPI')
+        ],
+        default='cash'
+    )
     payment_status = models.CharField(
         max_length=20,
         choices=[
@@ -62,8 +71,7 @@ class Invoice(models.Model):
 
     def __str__(self):
         return str(self.id)
-
-
+    
 class InvoiceDetail(models.Model):
     invoice = models.ForeignKey(
         Invoice, on_delete=models.SET_NULL, blank=True, null=True)

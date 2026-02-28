@@ -760,7 +760,6 @@ from utils.adminhandler import admin_required
 
 
 @admin_required
-
 def create_invoice(request):
     products = Product.objects.all()
     customers = Customer.objects.all()
@@ -780,7 +779,7 @@ def create_invoice(request):
     new_gender = request.POST.get("new_customer_gender", "Male")
     new_status = request.POST.get("new_customer_status", "Normal")
     
-    # Get price type from form (important!)
+    # Get price type from form
     price_type = request.POST.get("price_type", "regular")
     
     # Get amount paid
@@ -789,6 +788,16 @@ def create_invoice(request):
         amount_paid = float(amount_paid)
     except ValueError:
         amount_paid = 0.0
+
+    # Get payment method
+    payment_method = request.POST.get("payment_method", "cash")
+    
+    # Get manual discount
+    manual_discount = request.POST.get("manual_discount", "0")
+    try:
+        manual_discount = float(manual_discount)
+    except ValueError:
+        manual_discount = 0.0
 
     customer = None
 
@@ -817,6 +826,10 @@ def create_invoice(request):
 
     # ================= PRODUCTS =====================
     product_ids = request.POST.getlist("products")
+    
+    # Remove duplicates from product_ids
+    product_ids = list(dict.fromkeys(product_ids))
+    
     if not product_ids:
         messages.error(request, "Please select at least one service")
         return redirect("create_invoice")
@@ -825,15 +838,25 @@ def create_invoice(request):
     invoice = Invoice.objects.create(
         customer=customer.customer_name,
         contact=customer.customer_number,
-        comments=request.POST.get("comments", "")
+        comments=request.POST.get("comments", ""),
+        payment_method=payment_method
     )
 
     items = []
     total = 0
-    regular_total = 0  # To calculate discount
+    regular_total = 0
+    processed_products = set()
 
+    # Process each selected product
     for index, pid in enumerate(product_ids, start=1):
-        product = Product.objects.get(id=pid)
+        if pid in processed_products:
+            continue
+            
+        try:
+            product = Product.objects.get(id=pid)
+        except Product.DoesNotExist:
+            continue
+            
         qty = int(request.POST.get(f"quantity_{pid}", 1))
         
         # DETERMINE WHICH PRICE TO USE
@@ -851,6 +874,9 @@ def create_invoice(request):
         total += subtotal
         regular_total += regular_subtotal
 
+        # Calculate discount for this item
+        item_discount = regular_subtotal - subtotal
+
         # Create invoice detail
         InvoiceDetail.objects.create(
             invoice=invoice,
@@ -860,7 +886,6 @@ def create_invoice(request):
 
         # Prepare display price for PDF
         if price_type == 'membership' and customer.customer_status == 'Membership':
-            # Show both prices: Regular (strikethrough) and Membership
             price_display = f"{regular_price:.2f} → {price:.2f}"
         else:
             price_display = f"{price:.2f}"
@@ -868,23 +893,32 @@ def create_invoice(request):
         items.append([
             index,
             product.services_name,
-            "9983",
             str(qty),
             "pcs",
             price_display,
-            "0.00",
-            "0.00",
+            f"{item_discount:.2f}",  # Item discount
             f"{subtotal:.2f}",
         ])
+        
+        processed_products.add(pid)
 
-    # Calculate payment details
+    # Calculate discounts
+    membership_discount = regular_total - total if regular_total > total else 0
+    
+    # Store original total before manual discount
+    original_total = total
+    
+    # Apply manual discount if any (from total after membership discount)
+    if manual_discount > 0:
+        total = max(0, total - manual_discount)
+    
     invoice.total = total
     
-    # Handle amount paid logic
+    # Handle amount paid logic with clear calculation
     if amount_paid > 0:
         if amount_paid >= total:
             # Fully paid or overpaid
-            invoice.amount_paid = total
+            invoice.amount_paid = total  # Only record up to the total amount
             invoice.balance_due = 0
             if amount_paid > total:
                 invoice.change_returned = amount_paid - total
@@ -904,7 +938,16 @@ def create_invoice(request):
         invoice.change_returned = 0
         invoice.payment_status = 'UNPAID'
     
+    invoice.discount_given = membership_discount + manual_discount
     invoice.save()
+
+    # Return JSON response for AJAX if requested
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'invoice_id': invoice.id,
+            'redirect_url': f'/invoice/download/{invoice.id}/'
+        })
 
     # ================= PDF GENERATION =================
     buffer = BytesIO()
@@ -985,11 +1028,13 @@ def create_invoice(request):
     c.drawString(info_x, y, f"Invoice Date: {invoice_date}")
     y -= 12
     c.drawString(info_x, y, f"Time: {datetime.now().strftime('%I:%M %p')}")
+    y -= 12
+    c.drawString(info_x, y, f"Payment Method: {payment_method.upper()}")
 
-    # === Table Header ===
+    # === Table Header - REMOVED HSN/SAC and Tax %, ADDED Discount column ===
     y = height - 220
-    headers = ["Sr.", "Item Description", "HSN/SAC", "Qty", "Unit", "List Price", "Disc.", "Tax %", "Amount (₹)"]
-    col_x = [30, 60, 210, 280, 310, 350, 410, 460, 510]
+    headers = ["Sr.", "Item Description", "Qty", "Unit", "List Price", "Disc. (₹)", "Amount (₹)"]
+    col_x = [30, 60, 270, 310, 350, 410, 490]
     row_height = 18
 
     c.setFillColor(colors.lightgrey)
@@ -1011,27 +1056,39 @@ def create_invoice(request):
             y = height - 100
             c.setFont("Helvetica", 9)
 
-    # === Calculate Discount ===
-    discount = regular_total - total if regular_total > total else 0
+    # === Calculate Total Discount ===
+    total_discount = membership_discount + manual_discount
     
     # === Total ===
     c.setFont("Helvetica-Bold", 11)
     c.drawString(120, y - 20, "Total")
     c.drawRightString(width - 40, y - 20, f"{invoice.total:,.2f}")
     
-    # Show discount if applicable
-    if discount > 0:
-        c.setFont("Helvetica", 9)
-        c.drawString(120, y - 35, "Membership Discount:")
-        c.setFillColor(colors.green)
-        c.drawRightString(width - 40, y - 35, f"-₹{discount:,.2f}")
+    # Show discount breakdown if applicable
+    if total_discount > 0:
+        y_discount = y - 35
+        if membership_discount > 0:
+            c.setFont("Helvetica", 9)
+            c.drawString(120, y_discount, "Membership Discount:")
+            c.setFillColor(colors.green)
+            c.drawRightString(width - 40, y_discount, f"-₹{membership_discount:,.2f}")
+            y_discount -= 15
+        
+        if manual_discount > 0:
+            c.setFont("Helvetica", 9)
+            c.drawString(120, y_discount, "Additional Discount:")
+            c.setFillColor(colors.orange)
+            c.drawRightString(width - 40, y_discount, f"-₹{manual_discount:,.2f}")
+        
         c.setFillColor(colors.black)
         
         # Show original total before discount
-        c.drawString(120, y - 50, "Original Amount:")
+        c.drawString(120, y - 65, "Original Amount:")
         c.setFillColor(colors.grey)
-        c.drawRightString(width - 40, y - 50, f"₹{regular_total:,.2f}")
+        c.drawRightString(width - 40, y - 65, f"₹{regular_total:,.2f}")
         c.setFillColor(colors.black)
+        y -= 65
+    else:
         y -= 35
 
     # === Payment Details Section ===
@@ -1041,6 +1098,8 @@ def create_invoice(request):
     y_position -= 15
     c.setFont("Helvetica", 9)
     c.drawString(30, y_position, f"Amount Paid: ₹{invoice.amount_paid:,.2f}")
+    y_position -= 12
+    c.drawString(30, y_position, f"Payment Method: {payment_method.upper()}")
     y_position -= 12
     
     if invoice.payment_status == 'PAID':
@@ -1059,12 +1118,6 @@ def create_invoice(request):
     
     c.setFillColor(colors.black)
     y_position -= 12
-    
-    # Show discount given if partially paid
-    if invoice.payment_status == 'PARTIAL' and invoice.amount_paid < invoice.total:
-        c.drawString(30, y_position, f"Discount Given: ₹{invoice.total - invoice.amount_paid:,.2f}")
-        c.setFillColor(colors.orange)
-        c.setFillColor(colors.black)
 
     # === Amount in Words ===
     c.setFont("Helvetica", 9)
@@ -1103,12 +1156,13 @@ def create_invoice(request):
     c.showPage()
     c.save()
     buffer.seek(0)
-
+    
     return FileResponse(
         buffer,
         as_attachment=True,
         filename=f"Invoice_{invoice.id}.pdf"
-    )  
+    )
+    
     
 # AJAX view for auto-filling customer details
 @admin_required
