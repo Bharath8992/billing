@@ -40,7 +40,7 @@
                                 <th>Date</th>
                                 <th>Customer</th>
                                 <th>Contact</th>
-                                <th>Email</th>
+                                <th>Payment Method</th>
                                 <th>Total (₹)</th>
                                 <th>View</th>
                                 <th>Download</th>
@@ -54,7 +54,7 @@
                                 <td>{{ i.date }}</td>
                                 <td>{{ i.customer }}</td>
                                 <td>{{ i.contact }}</td>
-                                <td>{{ i.email }}</td>
+                                <td>{{ i.payment_method }}</td>
                                 <td><strong>{{ i.total }}</strong></td>
                                 <td>
                                     <a href="{% url 'view_invoice_detail' i.id %}" class="btn btn-outline-primary btn-sm">

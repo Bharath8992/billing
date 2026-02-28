@@ -1031,7 +1031,11 @@ def download_invoice_pdf(request, invoice_id):
 
     p.showPage()
     p.save()
+
     buffer.seek(0)
+    response.write(buffer.getvalue())
+    buffer.close()
+
     return response
 
 
