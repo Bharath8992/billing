@@ -837,9 +837,9 @@ def create_invoice(request):
         c.drawRightString(width - 40, current_y, f"₹{invoice.balance_due:,.2f}")
         current_y -= 18
         
-        c.drawString(width - 240, current_y, "Status:")
-        c.setFillColor(status_colors['PARTIAL'])
-        c.drawRightString(width - 40, current_y, "PARTIALLY PAID")
+        # c.drawString(width - 240, current_y, "Status:")
+        # c.setFillColor(status_colors['PARTIAL'])
+        # c.drawRightString(width - 40, current_y, "PARTIALLY PAID")
         
     else:  # UNPAID
         c.drawString(width - 240, current_y, "Balance Due:")
@@ -854,21 +854,28 @@ def create_invoice(request):
     c.setFillColor(colors.black)
 
     # === Amount in Words (Left Side) ===
+   
     c.setFont("Helvetica", 9)
     amount_words = num2words(total, lang="en").title() + " Only"
-    c.drawString(35, 160, "Amount in Words:")
-    c.setFont("Helvetica-Bold", 9)
-    c.drawString(35, 145, f"Rupees {amount_words}")
 
-    # === Bank Details (Left Side) ===
-    bank_y = 120
+    c.drawString(35, 490, "Amount in Words:")
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(35, 470, f"Rupees {amount_words}")
+
+    # === Welcome Section (Left Side) ===
+    welcome_y = 120
+
+    # Draw Box
+    c.rect(30, welcome_y - 45, 200, 50, stroke=True)
+
+    # Title
     c.setFont("Helvetica-Bold", 10)
-    c.drawString(35, bank_y, "Bank Details:")
+    c.drawCentredString(130, welcome_y - 10, "Welcome to Curatherapy Centre")
+
+    # Subtitle / Message
     c.setFont("Helvetica", 8)
-    c.drawString(35, bank_y - 12, "Bank: HDFC Bank")
-    c.drawString(35, bank_y - 22, "A/c No: 50200012345678")
-    c.drawString(35, bank_y - 32, "IFSC: HDFC0001234")
-    c.rect(30, bank_y - 45, 200, 50, stroke=True)
+    c.drawCentredString(130, welcome_y - 25, "Thank you for choosing us again!")
+    c.drawCentredString(130, welcome_y - 35, "Your health and wellness matter.")
 
     # === Terms & Conditions (Right Side) ===
     terms_y = 120
